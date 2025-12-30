@@ -1,0 +1,14 @@
+{
+    "searchTerms": [
+        "Junior Software Engineer",
+        "Software Engineer",
+        "Software Developer",
+        "AI Engineer"
+    ],
+    "maxResults": 550,
+    "SortBy": "KeywordsRelevance",
+    "suburbOrCity": "Sydney",
+    "state": "NSW",
+    "dateRange": 31,
+    "requireEmail": false
+}
