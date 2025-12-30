@@ -27,7 +27,7 @@ class GeminiAgent:
         self.model = model
         self.name = name
     
-    def prepare_cover_letter(self, job_data, resume, convert_to_australian_language):
+    def prepare_cover_letter(self, job_data, resume, spell_variant=None):
         job_content = job_data.get('content', {})
         job_description = job_content.get('sections', '')
         
@@ -38,10 +38,18 @@ class GeminiAgent:
         if company_name == 'N/A':
             company_name = 'Hiring Manager'
 
-        australian_language = (
-            "Adjust spelling to Australian English (e.g., optimise, customise, utilise instead of optimize, customize, utilize)."
-            if convert_to_australian_language else ""
-        )
+        # Dynamic language variant based on spell_variant
+        language_instruction = ""
+        if spell_variant:
+            spell_variant_lower = spell_variant.lower()
+            if spell_variant_lower == "australian":
+                language_instruction = "Adjust spelling to Australian English (e.g., optimise, customise, utilise, colour, favour)."
+            elif spell_variant_lower == "british":
+                language_instruction = "Adjust spelling to British English (e.g., optimise, customise, utilise, colour, favour)."
+            elif spell_variant_lower == "american":
+                language_instruction = "Use American English spelling (e.g., optimize, customize, utilize, color, favor)."
+            elif spell_variant_lower == "canadian":
+                language_instruction = "Use Canadian English spelling (mix of British and American, e.g., colour but organize)."
 
         prompt = f"""
             ## Optimized Prompt for Generating a Cover Letter
@@ -86,7 +94,7 @@ class GeminiAgent:
                 mentioned** in the provided **[resume]**.
             2.  **Length and Structure Constraint:** The cover letter must be **no more than 400 words** and must follow a standard professional three-to-five-paragraph business letter format.
             3.  **Tone Constraint:** The tone must be professional, confident, and enthusiastic.
-            4.  **Language Constraint:** {australian_language}
+            4.  **Language Constraint:** {language_instruction}
 
             ---
 
@@ -178,8 +186,8 @@ class GeminiAgent:
                 - If you find *any* text enclosed in square brackets (e.g., `[Date]`, `[Your Address]`, `[Company Name]`), 
                   you **must delete the placeholder text AND the brackets entirely.**
                 - **Example Transformation:**
-                    - ❌ **Input:** `[Date] \n [Your Address] \n [Postcode] \n \n Dear [Hiring Manager], \n I am applying for the role...`
-                    - ✅ **Correct Output:** `\n \n Dear , \n I am applying for the role...`
+                    -  **Input:** `[Date] \n [Your Address] \n [Postcode] \n \n Dear [Hiring Manager], \n I am applying for the role...`
+                    -  **Correct Output:** `\n \n Dear , \n I am applying for the role...`
             4.  **Final Output:** Produce the final, polished cover letter text.
             ---
 
@@ -242,19 +250,30 @@ class MetaAgent:
         self.client = MetaAI()
         self.name = name
     
-    def prepare_cover_letter(self, job_data, resume, convert_to_australian_language):
+    def prepare_cover_letter(self, job_data, resume, spell_variant=None):
         job_description = job_data.get('content', '').get('sections', '')
         position = job_data.get('title', 'Unknown position')
         company_name = job_data.get('companyProfile', {}).get('name', 'Unknown company')
 
-        australian_language = "be sure the adjust the output of this cover letter to austrlian type language for example convert 'ize' type words such as optimize, customize, utilize, etc to optimise, customise, utilise, etc"
+        # Dynamic language variant
+        language_instruction = ""
+        if spell_variant:
+            spell_variant_lower = spell_variant.lower()
+            if spell_variant_lower == "australian":
+                language_instruction = "Adjust the cover letter to Australian English spelling (e.g., optimise, customise, utilise, colour, favour)."
+            elif spell_variant_lower == "british":
+                language_instruction = "Use British English spelling (e.g., optimise, customise, utilise, colour, favour)."
+            elif spell_variant_lower == "american":
+                language_instruction = "Use American English spelling (e.g., optimize, customize, utilize, color, favor)."
+            elif spell_variant_lower == "canadian":
+                language_instruction = "Use Canadian English spelling (mix of British and American)."
 
 
         prompt = f"""
             Create a cover letter for the {position} position at {company_name}.
             Job description: {job_description}
             Based on my resume: {resume}
-            {australian_language if convert_to_australian_language else ""}
+            {language_instruction}
             be sure to format this cover letter with dot points & line breaks to clearly outline sections/items as this text will be converted to a pdf file
             structure the cover letter as follows:
             Dear {company_name}

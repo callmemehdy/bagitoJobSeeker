@@ -1,4 +1,4 @@
-.PHONY: help install test-email test-cache check-status run clean
+.PHONY: help install test-email test-cache test-scraper check-status run clean
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo "Testing:"
 	@echo "  make test-email       Test Gmail configuration"
 	@echo "  make test-cache       Test cached data fallback"
+	@echo "  make test-scraper     Test custom Seek scraper"
 	@echo ""
 	@echo "Running:"
 	@echo "  make run              Run the job application bot"
@@ -29,6 +30,10 @@ help:
 	@echo "  make docs             Open documentation directory"
 	@echo ""
 	@echo ""
+
+clean_info:
+	@echo "reset the info.json hhh"
+	@echo -n '[]' > info.json
 
 # Install dependencies
 install:
@@ -50,6 +55,11 @@ test-email:
 test-cache:
 	@echo "  Testing cached data fallback..."
 	@uv run python3 test_cached_fallback.py
+
+# Test custom scraper
+test-scraper:
+	@echo " Testing custom Seek scraper..."
+	@uv run python3 test_custom_scraper.py
 
 # Check application status
 check-status:
@@ -111,7 +121,7 @@ dev-setup: install
 	@echo "4. Run: make run FIRST_NAME=YourName"
 
 # Quick test (all tests)
-test: test-cache test-email
+test: test-cache test-email test-scraper
 	@echo " All tests completed!"
 
 push:

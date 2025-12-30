@@ -18,6 +18,13 @@ class ApplicationPipeline:
     def __init__(self, run_config, args):
         self.scraper = JobScraper(run_config, cached_data_path='./info.json')
         self.args = args
+        self.run_config = run_config
+        
+        # Get spell variant from config or args
+        self.spell_variant = args.spell_variant
+        if not self.spell_variant and 'locale' in run_config:
+            self.spell_variant = run_config['locale'].get('spellVariant')
+        
         self.agent = AIAgent(args.first_name, args.model).agent
         self.mail_client = MailClient(args.mail_protocol)
         self.applied = self._load_applied(args.applied_path)
@@ -83,7 +90,7 @@ class ApplicationPipeline:
                         email_success = False
                         emails_contacted = []
 
-                        cover_letter = self.agent.prepare_cover_letter(job, self.args.resume_txt, self.args.australian_language)
+                        cover_letter = self.agent.prepare_cover_letter(job, self.args.resume_txt, self.spell_variant)
                         generate_cover_letter_pdf(cover_letter, self.args.cover_letter_path)
 
                         # Skip over jobs that require questions to be answered

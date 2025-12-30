@@ -4,13 +4,15 @@ An intelligent automation system that scrapes job listings from Seek, generates 
 
 ##  Features
 
-- **Job Scraping**: Uses Apify Seek Job Scraper or falls back to cached data
+- **Multi-Platform Scraping**: Scrapes from LinkedIn, Indeed, and Seek automatically
+- **Job Scraping**: Uses Apify, custom scraper (LinkedIn/Indeed), or cached data (automatic fallback)
 - **AI-Generated Content**: Creates personalized cover letters using Gemini or MetaAI
 - **Smart Filtering**: Resume-based job matching with configurable similarity scores
 - **Email Automation**: Automated application submission via Gmail
 - **Seek Integration**: Direct application on Seek platform (when logged in)
 - **Application Tracking**: Prevents duplicate applications
 - **Australian English**: Automatic spelling conversion (organise vs organize)
+- **Zero Cost Option**: Multi-platform scraper works without Apify API credits
 
 ---
 
@@ -47,7 +49,7 @@ EMAIL_APP_PASSWORD="your_gmail_app_password"  # See setup guide below
 # Optional: Gemini API (or will use MetaAI)
 GEMINI_KEY="your_gemini_api_key"
 
-# Optional: Apify API (or will use cached data)
+# Optional: Apify API (or will use custom scraper + cached data)
 APIFY_KEY="your_apify_api_key"
 ```
 
@@ -116,6 +118,7 @@ make clean             # Clean up cache files
 | Document | Description |
 |----------|-------------|
 | [QUICK_START.md](docs/QUICK_START.md) | Quick setup guide |
+| [CUSTOM_SCRAPER.md](docs/CUSTOM_SCRAPER.md) | Custom Seek scraper (no Apify needed) |
 | [GMAIL_APP_PASSWORD_SETUP.md](docs/GMAIL_APP_PASSWORD_SETUP.md) | Gmail configuration guide |
 | [FALLBACK_DATA.md](docs/FALLBACK_DATA.md) | Cached data fallback system |
 | [GEMINI_MODEL_UPDATE.md](docs/GEMINI_MODEL_UPDATE.md) | Gemini API configuration |
@@ -200,13 +203,16 @@ Switch to MetaAI (no limits):
 
 ### Apify Free Plan Expired?
 
-The system automatically uses cached data:
+The system automatically uses the custom scraper:
 ```bash
-# Test fallback
-make test-cache
+# Remove or comment out APIFY_KEY in .env
+# The app will automatically use the custom scraper
+
+# OR test the custom scraper
+uv run python test_custom_scraper.py
 ```
 
- See: [docs/FALLBACK_DATA.md](docs/FALLBACK_DATA.md)
+ See: [docs/CUSTOM_SCRAPER.md](docs/CUSTOM_SCRAPER.md) | [docs/FALLBACK_DATA.md](docs/FALLBACK_DATA.md)
 
 ---
 
@@ -236,6 +242,20 @@ bagitoJobSeeker/
  Makefile                    # Build commands
  README.md                   # This file
 ```
+
+---
+
+## Documentation
+
+Complete documentation available in: **[docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)**
+
+Includes:
+- Quick Start Guide
+- Gmail Setup Instructions
+- Platform Features (LinkedIn Posts, Indeed, Seek)
+- Country Configuration
+- Running 24/7 Instructions
+- Complete Troubleshooting Guide
 
 ---
 

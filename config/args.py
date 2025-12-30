@@ -33,11 +33,11 @@ def add_args():
                         help='Mail protocol e.g gmail.com, outlook.com',
                         default="gmail.com")
 
-    # True by default as seeks largest english userbase is Australia & NZ
-    parser.add_argument('--australian_language', 
-                        type=int,
-                        help='Convert llm output to australian type language. 0 = False',
-                        default=1)
+    # Language variant - now comes from config, but can be overridden
+    parser.add_argument('--spell_variant', 
+                        type=str,
+                        help='Spelling variant: british, american, australian, canadian, etc. (overrides config)',
+                        default=None)
 
     parser.add_argument('--model', 
                         type=str,
@@ -55,7 +55,6 @@ def add_args():
                             default=1)
     
     args = parser.parse_args()
-    args.australian_language = bool(args.australian_language)
     args.show_recent_role = bool(args.show_recent_role)
 
     return args

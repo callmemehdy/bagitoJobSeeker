@@ -2,3 +2,5 @@ apify_client
 reportlab
 python-dotenv
 meta_ai_api
+beautifulsoup4
+lxml
