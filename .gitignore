@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment variables
+.env
+
+# Application materials (sensitive)
+application_pipeline/application_materials/
+
+# Credentials
+credentials/*
+!credentials/.gitkeep
+
+# Logs
+*.log
+application.log
+
+# Backups
+*.backup
+*.backup_*
+*.old
+
+# Cached data (large files)
+info.json.backup_*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# UV lock
+uv.lock
