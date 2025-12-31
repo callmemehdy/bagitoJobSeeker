@@ -51,6 +51,10 @@ GEMINI_KEY="your_gemini_api_key"
 
 # Optional: Apify API (or will use custom scraper + cached data)
 APIFY_KEY="your_apify_api_key"
+
+# Optional: LinkedIn Selenium Scraping (for LinkedIn jobs)
+LINKEDIN_EMAIL="your_linkedin_email@example.com"
+LINKEDIN_PASSWORD="your_linkedin_password"
 ```
 
 **Important:** You need a Gmail App Password (not your regular password)
@@ -87,6 +91,9 @@ make test-email
 
 # Test cached data fallback
 make test-cache
+
+# Test LinkedIn Selenium scraper (optional)
+make test-linkedin
 ```
 
 ### 6. Run the Application
@@ -105,6 +112,7 @@ make help              # Show all available commands
 make install           # Install dependencies
 make test-email        # Test Gmail configuration
 make test-cache        # Test cached data fallback
+make test-linkedin     # Test LinkedIn Selenium scraper
 make check-status      # Check application status
 make run FIRST_NAME=X  # Run the application
 make reset-applied     # Reset applied jobs tracker
@@ -118,6 +126,7 @@ make clean             # Clean up cache files
 | Document | Description |
 |----------|-------------|
 | [QUICK_START.md](docs/QUICK_START.md) | Quick setup guide |
+| [SELENIUM_LINKEDIN_SETUP.md](docs/SELENIUM_LINKEDIN_SETUP.md) | LinkedIn Selenium scraping setup |
 | [CUSTOM_SCRAPER.md](docs/CUSTOM_SCRAPER.md) | Custom Seek scraper (no Apify needed) |
 | [GMAIL_APP_PASSWORD_SETUP.md](docs/GMAIL_APP_PASSWORD_SETUP.md) | Gmail configuration guide |
 | [FALLBACK_DATA.md](docs/FALLBACK_DATA.md) | Cached data fallback system |

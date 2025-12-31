@@ -1,4 +1,4 @@
-.PHONY: help install test-email test-cache test-scraper check-status run clean
+.PHONY: help install test-email test-cache test-scraper test-linkedin check-status run clean
 
 # Default target
 help:
@@ -13,6 +13,7 @@ help:
 	@echo "  make test-email       Test Gmail configuration"
 	@echo "  make test-cache       Test cached data fallback"
 	@echo "  make test-scraper     Test custom Seek scraper"
+	@echo "  make test-linkedin    Test LinkedIn Selenium scraper"
 	@echo ""
 	@echo "Running:"
 	@echo "  make run              Run the job application bot"
@@ -60,6 +61,11 @@ test-cache:
 test-scraper:
 	@echo " Testing custom Seek scraper..."
 	@uv run python3 test_custom_scraper.py
+
+# Test LinkedIn Selenium scraper
+test-linkedin:
+	@echo " Testing LinkedIn Selenium scraper..."
+	@uv run python3 test_linkedin_scraper.py
 
 # Check application status
 check-status:
@@ -121,7 +127,7 @@ dev-setup: install
 	@echo "4. Run: make run FIRST_NAME=YourName"
 
 # Quick test (all tests)
-test: test-cache test-email test-scraper
+test: test-cache test-email test-scraper test-linkedin
 	@echo " All tests completed!"
 
 push:

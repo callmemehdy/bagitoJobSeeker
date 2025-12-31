@@ -7,6 +7,7 @@ import asyncio
 import logging
 import json
 import re
+import os
 from pathlib import Path
 from typing import Dict, List, Optional
 from curl_cffi.requests import AsyncSession
@@ -37,6 +38,12 @@ class MultiPlatformScraper:
         # Get country settings from config
         self.country = run_config.get('country', 'Australia')
         self.country_code = run_config.get('countryCode', 'AU')
+        
+        # Check if Selenium should be used for LinkedIn
+        self.use_selenium_for_linkedin = run_config.get('use_selenium_for_linkedin', False)
+        
+        # Check if email is required
+        self.require_email = run_config.get('requireEmail', False)
         
     async def scrape(self) -> Dict[str, List]:
         """Scrape jobs from all enabled platforms"""
@@ -94,6 +101,8 @@ class MultiPlatformScraper:
             return await self._scrape_seek(search_term)
         elif platform == 'indeed':
             return await self._scrape_indeed(search_term)
+        elif platform == 'linkedin':
+            return await self._scrape_linkedin(search_term)
         else:
             logging.warning(f"Unknown platform: {platform}")
             return []
@@ -156,6 +165,66 @@ class MultiPlatformScraper:
         
         logging.info(f"Found {len(jobs)} jobs with emails on seek for '{search_term}'")
         return jobs
+    
+    async def _scrape_linkedin(self, search_term: str) -> List[Dict]:
+        """Scrape LinkedIn jobs using Selenium"""
+        if not self.use_selenium_for_linkedin:
+            logging.info("Selenium for LinkedIn is disabled in config")
+            return []
+        
+        try:
+            # Import here to avoid dependency if not used
+            from .linkedin_selenium_scraper import LinkedInSeleniumScraper
+            
+            email = os.getenv('LINKEDIN_EMAIL')
+            password = os.getenv('LINKEDIN_PASSWORD')
+            
+            if not email or not password:
+                logging.warning("LINKEDIN_EMAIL and LINKEDIN_PASSWORD not set in .env - skipping LinkedIn")
+                return []
+            
+            logging.info("Using Selenium to scrape LinkedIn...")
+            
+            # Run Selenium scraper synchronously (Selenium doesn't support async)
+            loop = asyncio.get_event_loop()
+            jobs = await loop.run_in_executor(
+                None,
+                self._scrape_linkedin_sync,
+                email,
+                password,
+                search_term
+            )
+            
+            return jobs
+            
+        except ImportError as e:
+            logging.error(f"Failed to import LinkedIn scraper: {e}")
+            logging.error("Install with: uv add selenium webdriver-manager")
+            return []
+        except Exception as e:
+            logging.error(f"Error scraping LinkedIn with Selenium: {e}")
+            return []
+    
+    def _scrape_linkedin_sync(self, email: str, password: str, search_term: str) -> List[Dict]:
+        """Synchronous LinkedIn scraping (called in executor)"""
+        from .linkedin_selenium_scraper import LinkedInSeleniumScraper
+        
+        scraper = LinkedInSeleniumScraper(
+            email=email,
+            password=password,
+            headless=True,
+            country=self.country,
+            country_code=self.country_code
+        )
+        
+        try:
+            location = self.run_config.get('suburbOrCity', '')
+            max_results = self.run_config.get('maxResults', 50)
+            
+            jobs = scraper.scrape_jobs(search_term, location, max_results)
+            return jobs
+        finally:
+            scraper.close()
     
     async def _scrape_indeed(self, search_term: str) -> List[Dict]:
         """Scrape Indeed jobs"""
@@ -436,6 +505,18 @@ class MultiPlatformScraper:
             
             # Format job data for links file
             for job in jobs:
+                # Handle content as either dict or string
+                content = job.get('content', '')
+                if isinstance(content, dict):
+                    job_hook = content.get('jobHook', '')
+                    sections = content.get('sections', [])
+                elif isinstance(content, str):
+                    job_hook = content[:500]
+                    sections = []
+                else:
+                    job_hook = ''
+                    sections = []
+                
                 link_entry = {
                     'id': job['id'],
                     'title': job.get('title', 'Unknown'),
@@ -443,8 +524,8 @@ class MultiPlatformScraper:
                     'platform': job.get('platform', 'unknown'),
                     'applyLink': job.get('applyLink', job.get('jobLink', '')),
                     'jobLink': job.get('jobLink', ''),
-                    'description': job.get('content', {}).get('jobHook', '')[:500],  # First 500 chars
-                    'fullDescription': job.get('content', {}).get('sections', []),
+                    'description': job_hook[:500],
+                    'fullDescription': sections,
                     'location': job.get('joblocationInfo', {}).get('displayLocation', 'Unknown'),
                     'salary': job.get('salary', 'N/A'),
                     'scrapedDate': datetime.now().isoformat()

@@ -10,7 +10,8 @@
     "countryCode": "AU",
     "dateRange": 31,
     "requireEmail": false,
-    "platforms": ["seek", "indeed"],
+    "platforms": ["seek", "indeed", "linkedin"],
+    "use_selenium_for_linkedin": true,
     "locale": {
         "language": "en-AU",
         "spellVariant": "australian",
