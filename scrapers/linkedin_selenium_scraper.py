@@ -146,7 +146,7 @@ class LinkedInSeleniumScraper:
             return False
     
     def scrape_jobs(self, search_term: str, location: str = "", max_results: int = 50) -> List[Dict]:
-        """Scrape LinkedIn jobs"""
+        """Scrape LinkedIn feed posts about jobs"""
         try:
             if not self.driver:
                 self._setup_driver()
@@ -158,11 +158,9 @@ class LinkedInSeleniumScraper:
             jobs = []
             
             from urllib.parse import quote_plus
-            search_url = f"https://www.linkedin.com/jobs/search/?keywords={quote_plus(search_term)}"
-            if location:
-                search_url += f"&location={quote_plus(location)}"
+            search_url = f"https://www.linkedin.com/search/results/content/?keywords={quote_plus(search_term + ' hiring')}"
             
-            logging.info(f"Searching LinkedIn: {search_url}")
+            logging.info(f"Searching LinkedIn posts: {search_url}")
             self.driver.get(search_url)
             time.sleep(3)
             
@@ -174,20 +172,20 @@ class LinkedInSeleniumScraper:
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(2)
                 
-                job_cards = self.driver.find_elements(By.CSS_SELECTOR, "div.job-card-container, li.jobs-search-results__list-item")
+                posts = self.driver.find_elements(By.CSS_SELECTOR, "div.feed-shared-update-v2, div.update-components-text")
                 
-                logging.info(f"Found {len(job_cards)} job cards on page")
+                logging.info(f"Found {len(posts)} posts on page")
                 
-                for card in job_cards:
+                for post in posts:
                     if len(jobs) >= max_results:
                         break
                     
                     try:
-                        job = self._parse_job_card(card)
+                        job = self._parse_post(post, search_term)
                         if job and job['id'] not in [j['id'] for j in jobs]:
                             jobs.append(job)
                     except Exception as e:
-                        logging.debug(f"Error parsing job card: {e}")
+                        logging.debug(f"Error parsing post: {e}")
                         continue
                 
                 new_height = self.driver.execute_script("return document.body.scrollHeight")
@@ -197,12 +195,73 @@ class LinkedInSeleniumScraper:
                 last_height = new_height
                 scroll_attempts += 1
             
-            logging.info(f"Scraped {len(jobs)} jobs from LinkedIn for '{search_term}'")
+            logging.info(f"Scraped {len(jobs)} jobs from LinkedIn posts for '{search_term}'")
             return jobs
             
         except Exception as e:
-            logging.error(f"Error scraping LinkedIn jobs: {e}")
+            logging.error(f"Error scraping LinkedIn posts: {e}")
             return []
+    
+    def _parse_post(self, post, search_term: str) -> Optional[Dict]:
+        """Parse a LinkedIn feed post"""
+        try:
+            post_text = post.text
+            
+            if not post_text or len(post_text) < 50:
+                return None
+            
+            emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', post_text)
+            emails = list(set(emails))
+            
+            if not emails:
+                return None
+            
+            try:
+                author_elem = post.find_element(By.CSS_SELECTOR, ".update-components-actor__name, .feed-shared-actor__name")
+                author = author_elem.text.strip()
+            except:
+                author = "Unknown"
+            
+            try:
+                post_link_elem = post.find_element(By.CSS_SELECTOR, "a[href*='/feed/update/']")
+                post_link = post_link_elem.get_attribute('href')
+                post_id = re.search(r'urn:li:activity:(\d+)', post_link)
+                post_id = post_id.group(1) if post_id else str(hash(post_text[:100]))
+            except:
+                post_id = str(hash(post_text[:100]))
+                post_link = "https://www.linkedin.com/feed/"
+            
+            logging.info(f"✓ Found post with {len(emails)} email(s): {emails}")
+            
+            job_data = {
+                'id': f"linkedin_post_{post_id}",
+                'title': f"{search_term} - LinkedIn Post",
+                'roleId': self._generate_role_id(search_term),
+                'company': author,
+                'jobLink': post_link,
+                'applyLink': post_link,
+                'salary': 'N/A',
+                'workTypes': 'See post',
+                'workArrangements': 'See post',
+                'content': post_text,
+                'description': post_text,
+                'emails': emails,
+                'phoneNumbers': [],
+                'platform': 'linkedin',
+                'location': 'See post',
+                'joblocationInfo': {
+                    'displayLocation': 'See post',
+                    'location': 'See post',
+                    'country': self.country,
+                    'countryCode': self.country_code,
+                }
+            }
+            
+            return job_data
+            
+        except Exception as e:
+            logging.debug(f"Error parsing post: {e}")
+            return None
     
     def _parse_job_card(self, card) -> Optional[Dict]:
         """Parse a LinkedIn job card"""
