@@ -17,18 +17,16 @@ def main():
     print("LinkedIn Selenium Scraper Test")
     print("=" * 80)
     
-    # Check credentials
     email = os.getenv('LINKEDIN_EMAIL')
     password = os.getenv('LINKEDIN_PASSWORD')
     
     if not email or not password:
-        print("\n❌ ERROR: LinkedIn credentials not found!")
+        print("\n ERROR: LinkedIn credentials not found!")
         print("\nPlease add to .env:")
         print("  LINKEDIN_EMAIL=\"your_email@example.com\"")
         print("  LINKEDIN_PASSWORD=\"your_password\"")
         sys.exit(1)
     
-    # Load config for country settings
     import json
     try:
         with open('./config/run_config.json', 'r') as f:
@@ -41,12 +39,11 @@ def main():
         country_code = 'AU'
         location = 'Sydney'
     
-    print(f"\n✅ Found LinkedIn credentials for: {email}")
-    print(f"📍 Country: {country} ({country_code})")
-    print(f"📍 Location: {location}")
-    print("\n⚙️  Starting Chrome browser (this may take a moment)...")
+    print(f"\n Found LinkedIn credentials for: {email}")
+    print(f" Country: {country} ({country_code})")
+    print(f" Location: {location}")
+    print("\n  Starting Chrome browser (this may take a moment)...")
     
-    # Initialize scraper (headless=False to see the browser)
     scraper = LinkedInSeleniumScraper(
         email=email,
         password=password,
@@ -56,7 +53,7 @@ def main():
     )
     
     try:
-        print(f"🔍 Scraping jobs for: 'Software Engineer' in {location}")
+        print(f" Scraping jobs for: 'Software Engineer' in {location}")
         print("⏳ This will take 30-60 seconds...\n")
         
         jobs = scraper.scrape_jobs(
@@ -66,11 +63,11 @@ def main():
         )
         
         print("\n" + "=" * 80)
-        print(f"✅ SUCCESS! Found {len(jobs)} jobs from LinkedIn")
+        print(f" SUCCESS! Found {len(jobs)} jobs from LinkedIn")
         print("=" * 80)
         
         if jobs:
-            print("\n📋 Sample Jobs:\n")
+            print("\n Sample Jobs:\n")
             
             for i, job in enumerate(jobs[:5], 1):
                 print(f"{i}. {job['title']}")
@@ -84,17 +81,17 @@ def main():
             if len(jobs) > 5:
                 print(f"   ... and {len(jobs) - 5} more jobs")
         else:
-            print("\n⚠️  No jobs found. Try adjusting search terms or location.")
+            print("\n  No jobs found. Try adjusting search terms or location.")
         
     except Exception as e:
-        print(f"\n❌ ERROR: {e}")
+        print(f"\n ERROR: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
     finally:
-        print("\n🔒 Closing browser...")
+        print("\n Closing browser...")
         scraper.close()
-        print("✅ Test complete!")
+        print(" Test complete!")
 
 
 if __name__ == "__main__":

@@ -1,10 +1,10 @@
-# LinkedIn Selenium Scraping - Setup Complete! ✅
+# LinkedIn Selenium Scraping - Setup Complete! 
 
 ## What Was Added
 
 ### 1. Dependencies Installed
-- ✅ `selenium` - Browser automation
-- ✅ `webdriver-manager` - Automatic ChromeDriver management
+-  `selenium` - Browser automation
+-  `webdriver-manager` - Automatic ChromeDriver management
 
 ### 2. New Files Created
 
@@ -102,12 +102,12 @@ make run FIRST_NAME=YourName
 
 ## Features
 
-✅ **JavaScript Support** - Handles LinkedIn's dynamic content
-✅ **Auto Login** - Saves session cookies for reuse
-✅ **Email Extraction** - Finds contact emails in job posts
-✅ **Headless Mode** - Runs without visible browser in production
-✅ **Error Handling** - Graceful fallback if LinkedIn fails
-✅ **Cookie Management** - Stored in `credentials/linkedin_cookies.json`
+ **JavaScript Support** - Handles LinkedIn's dynamic content
+ **Auto Login** - Saves session cookies for reuse
+ **Email Extraction** - Finds contact emails in job posts
+ **Headless Mode** - Runs without visible browser in production
+ **Error Handling** - Graceful fallback if LinkedIn fails
+ **Cookie Management** - Stored in `credentials/linkedin_cookies.json`
 
 ## Architecture
 
@@ -120,9 +120,9 @@ ApplicationPipeline
     ↓
 MultiPlatformScraper
     ↓
-├─ Seek (BeautifulSoup) → Fast, static HTML
-├─ Indeed (BeautifulSoup) → Fast, static HTML
-└─ LinkedIn (Selenium) → Slower, JavaScript required
+ Seek (BeautifulSoup) → Fast, static HTML
+ Indeed (BeautifulSoup) → Fast, static HTML
+ LinkedIn (Selenium) → Slower, JavaScript required
     ↓
     LinkedInSeleniumScraper
         ↓
@@ -138,9 +138,9 @@ MultiPlatformScraper
 
 | Platform | Method | Speed | Memory |
 |----------|--------|-------|--------|
-| Seek | HTTP | ⚡ 1-2s | 10MB |
-| Indeed | HTTP | ⚡ 1-2s | 10MB |
-| LinkedIn | Selenium | 🐢 30-60s | 500MB |
+| Seek | HTTP |  1-2s | 10MB |
+| Indeed | HTTP |  1-2s | 10MB |
+| LinkedIn | Selenium |  30-60s | 500MB |
 
 **Recommendation**: Use LinkedIn for specific searches where email contact is important.
 
@@ -164,10 +164,10 @@ uv add --upgrade webdriver-manager
 
 ## Next Steps
 
-1. ✅ Add credentials to `.env`
-2. ✅ Enable in `config/run_config.json`  
-3. ✅ Test: `make test-linkedin`
-4. ✅ Run: `make run FIRST_NAME=YourName`
+1.  Add credentials to `.env`
+2.  Enable in `config/run_config.json`  
+3.  Test: `make test-linkedin`
+4.  Run: `make run FIRST_NAME=YourName`
 
 ## Documentation
 
@@ -177,4 +177,4 @@ uv add --upgrade webdriver-manager
 
 ---
 
-**Ready to go! Just fill in your LinkedIn credentials and enable in config.** 🚀
+**Ready to go! Just fill in your LinkedIn credentials and enable in config.** 

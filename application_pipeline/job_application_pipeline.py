@@ -20,7 +20,6 @@ class ApplicationPipeline:
         self.args = args
         self.run_config = run_config
         
-        # Get spell variant from config or args
         self.spell_variant = args.spell_variant
         if not self.spell_variant and 'locale' in run_config:
             self.spell_variant = run_config['locale'].get('spellVariant')
@@ -70,14 +69,12 @@ class ApplicationPipeline:
                         if job_id in self.applied['jobs']:
                             logging.info(f"Already applied to job {job_id}, skipping.")
                             continue
-                        # Re init agent if using meta ai to avoid limit context window issues
                         if not self.args.use_gemini:
                             self.agent = AIAgent(self.args.first_name).agent
                         
                         position = job.get('title', '')
                         raw_content = job.get('content', '')
                         
-                        # Handle both string content and dict with sections
                         if isinstance(raw_content, dict):
                             job_description = raw_content.get('sections', [])
                             job_description_text = " ".join(job_description) if job_description else ""
@@ -100,7 +97,6 @@ class ApplicationPipeline:
                         cover_letter = self.agent.prepare_cover_letter(job, self.args.resume_txt, self.spell_variant)
                         generate_cover_letter_pdf(cover_letter, self.args.cover_letter_path)
 
-                        # Skip over jobs that require questions to be answered
                         if seek_client.is_logged_in and (not job['hasRoleRequirements'] and not job['isExternalApply']):
                             success = seek_client.apply(job_id, resume_path=self.args.resume_pdf_path, cover_letter_path=self.args.cover_letter_path, show_recent_role=self.args.show_recent_role)
                             if success:
@@ -147,7 +143,6 @@ class ApplicationPipeline:
                     except Exception as e:
                         logging.error(f"Error processing job application: {e}")
 
-                    # Wait 30sec to not overload api can be removed if using official apis
                     if not self.args.use_gemini:
                         logging.info('sleeping')
                         time.sleep(30)

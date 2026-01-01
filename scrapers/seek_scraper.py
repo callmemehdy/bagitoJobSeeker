@@ -88,7 +88,6 @@ class SeekScraper:
                 logging.error(f"Error scraping page {page}: {e}")
                 break
         
-        # Fetch detailed job info for each job
         detailed_jobs = []
         for i, job in enumerate(jobs[:max_results], 1):
             try:
@@ -135,11 +134,9 @@ class SeekScraper:
         soup = BeautifulSoup(html, 'html.parser')
         jobs = []
         
-        # Find all job cards - Seek uses data-testid attributes
         job_cards = soup.find_all('article', {'data-search-sol-meta': True})
         
         if not job_cards:
-            # Fallback: try alternative selectors
             job_cards = soup.find_all('div', {'data-card-type': 'JobCard'})
         
         for card in job_cards:
@@ -226,20 +223,15 @@ class SeekScraper:
             
             soup = BeautifulSoup(response.text, 'html.parser')
             
-            # Extract job description
             description = self._extract_description(soup)
             
-            # Extract contact info (emails and phones)
             emails = self._extract_emails(response.text)
             phones = self._extract_phone_numbers(response.text)
             
-            # Extract work arrangements
             work_arrangements = self._extract_work_arrangements(soup)
             
-            # Extract bullet points and job hook
             bullet_points, job_hook = self._extract_highlights(soup, description)
             
-            # Update job with detailed info
             job.update({
                 'emails': emails,
                 'phoneNumbers': phones,
@@ -297,12 +289,10 @@ class SeekScraper:
     
     def _extract_work_arrangements(self, soup) -> str:
         """Extract work arrangement (Remote, Hybrid, etc.)"""
-        # Look for work arrangement indicators
         arrangement_elem = soup.find('span', string=re.compile(r'Remote|Hybrid|Work from home', re.I))
         if arrangement_elem:
             return arrangement_elem.get_text(strip=True)
         
-        # Check in job description
         desc = soup.get_text()
         if re.search(r'\bremote\b', desc, re.I):
             return "Remote"
@@ -325,17 +315,14 @@ class SeekScraper:
         bullet_points = []
         job_hook = ""
         
-        # Extract bullet points from lists
         for ul in soup.find_all('ul'):
             for li in ul.find_all('li'):
                 text = li.get_text(strip=True)
                 if text and len(text) > 10:
                     bullet_points.append(text)
         
-        # Take first 5 bullet points
         bullet_points = bullet_points[:5]
         
-        # Extract job hook from first paragraph
         paragraphs = soup.find_all('p')
         for p in paragraphs:
             text = p.get_text(strip=True)

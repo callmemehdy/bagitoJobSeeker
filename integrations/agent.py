@@ -30,7 +30,6 @@ class GeminiAgent:
     def prepare_cover_letter(self, job_data, resume, spell_variant=None):
         job_content = job_data.get('content', {})
         
-        # Handle both string content and dict with sections
         if isinstance(job_content, dict):
             job_description = job_content.get('sections', '')
         else:
@@ -43,7 +42,6 @@ class GeminiAgent:
         if company_name == 'N/A':
             company_name = 'Hiring Manager'
 
-        # Dynamic language variant based on spell_variant
         language_instruction = ""
         if spell_variant:
             spell_variant_lower = spell_variant.lower()
@@ -258,7 +256,6 @@ class MetaAgent:
     def prepare_cover_letter(self, job_data, resume, spell_variant=None):
         job_content = job_data.get('content', '')
         
-        # Handle both string content and dict with sections
         if isinstance(job_content, dict):
             job_description = job_content.get('sections', '')
         else:
@@ -267,7 +264,6 @@ class MetaAgent:
         position = job_data.get('title', 'Unknown position')
         company_name = job_data.get('companyProfile', {}).get('name', 'Unknown company')
 
-        # Dynamic language variant
         language_instruction = ""
         if spell_variant:
             spell_variant_lower = spell_variant.lower()

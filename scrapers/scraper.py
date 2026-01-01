@@ -22,12 +22,10 @@ class JobScraper:
         
     async def scrape(self, actor):
         try:
-            # Check if Apify is available
             if not self.has_apify:
                 logging.warning("No APIFY_KEY found. Using custom scraper...")
                 return await self._use_custom_scraper()
             
-            # Try Apify scraping
             all_data = {}
             tasks = []
             searchTerms = []
@@ -35,7 +33,6 @@ class JobScraper:
                 config = {k: v for k, v in self.run_config.items() if k != 'searchTerms'}
                 config['searchTerm'] = query
                 
-                # Map country to Apify's allowed values
                 country = config.get('country', 'Australia')
                 config['country'] = self._map_country_to_apify(country)
                 
@@ -49,7 +46,6 @@ class JobScraper:
                     continue
                 all_data[searchTerm] = await self._get_dataset(response)
 
-            # If API failed completely, use custom scraper
             if not all_data:
                 logging.warning("All Apify API calls failed. Using custom scraper...")
                 return await self._use_custom_scraper()
@@ -83,7 +79,6 @@ class JobScraper:
     async def _use_custom_scraper(self):
         """Use the custom scraper as fallback"""
         try:
-            # Try multi-platform scraper first
             try:
                 from scrapers.multi_platform_scraper import MultiPlatformScraper
                 logging.info("Initializing multi-platform scraper...")
@@ -96,7 +91,6 @@ class JobScraper:
             except Exception as e:
                 logging.warning(f"Multi-platform scraper failed: {e}, trying Seek-only scraper...")
                 
-                # Fallback to Seek-only scraper
                 from scrapers.seek_scraper import SeekScraper
                 logging.info("Initializing Seek scraper...")
                 

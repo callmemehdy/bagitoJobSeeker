@@ -210,12 +210,12 @@
 |  USA |  |  |  | |
 |  UK |  |  |  | |
 |  Canada |  |  |  | |
-|  Germany |  | ️ |  | LinkedIn best option |
-|  France |  | ️ |  | LinkedIn best option |
-|  India |  | ️ |  | LinkedIn best option |
+|  Germany |  |  |  | LinkedIn best option |
+|  France |  |  |  | LinkedIn best option |
+|  India |  |  |  | LinkedIn best option |
 |  Singapore |  |  |  | |
 
-**Note**:  = Working, ️ = Partial support,  = Not available
+**Note**:  = Working,  = Partial support,  = Not available
 
 ## Usage
 

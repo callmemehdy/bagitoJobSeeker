@@ -10,7 +10,6 @@ print("="*70)
 print("APPLICATION STATUS DIAGNOSTIC")
 print("="*70)
 
-# Check applied.json
 applied_path = "application_pipeline/application_materials/applied.json"
 if Path(applied_path).exists():
     with open(applied_path, 'r') as f:
@@ -35,7 +34,6 @@ if Path(applied_path).exists():
 else:
     print(" No applied.json found")
 
-# Check cached jobs for emails
 print("\n" + "="*70)
 print("CHECKING CACHED JOBS FOR EMAIL AVAILABILITY")
 print("="*70)
@@ -53,7 +51,6 @@ if Path(info_path).exists():
     print(f" Jobs with Emails: {jobs_with_emails} ({jobs_with_emails/total_jobs*100:.1f}%)")
     print(f" Jobs without Emails: {jobs_without_emails} ({jobs_without_emails/total_jobs*100:.1f}%)")
     
-    # Show some examples
     print("\n" + "-"*70)
     print("SAMPLE JOBS WITH EMAILS:")
     print("-"*70)
@@ -67,7 +64,6 @@ if Path(info_path).exists():
 else:
     print(" No info.json found")
 
-# Check environment variables
 print("\n" + "="*70)
 print("ENVIRONMENT CONFIGURATION CHECK")
 print("="*70)
@@ -117,7 +113,6 @@ elif jobs_with_emails < 10:
 if not email_address or not email_password:
     reasons.append(" Email credentials not configured in .env")
 
-# Check if Seek is logged in
 reasons.append("  Seek login may not be active (requires manual login)")
 reasons.append("  Jobs may have 'hasRoleRequirements' or 'isExternalApply' set to True")
 

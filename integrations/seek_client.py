@@ -215,7 +215,6 @@ class SeekClient:
             ]
 
             response = self.session.post('https://www.seek.com.au/graphql', json=json_data)
-            # logging.info(f"Application response: {response.text}")
             response.raise_for_status()
             data = response.json()
             assert data[0]['data']['submitApplication']['__typename'] == 'SubmitApplicationSuccess', f"Application failed: {data[0]['data']['submitApplication'].get('errors', [])}"
@@ -316,7 +315,6 @@ class SeekClient:
         return json_data
     
     def handle_role_requirements(self, job_id):
-        # Not yet implemented
         try:
             json_data = [
                 {
@@ -331,7 +329,6 @@ class SeekClient:
             ]
 
             response = self.session.post('https://www.seek.com.au/graphql', json=json_data)
-            # TODO: check response for errors as status always seems to be 200
             response.raise_for_status()
             data = response.json()
             questions = data[0]['data']['jobApplicationProcess']['questionnaire']['questions']
@@ -355,7 +352,6 @@ class SeekClient:
 
             response = self.session.post('https://www.seek.com.au/graphql', json=json_data)
             response.raise_for_status()
-            # TODO: check response for errors as status always seems to be 200
             data = response.json()
             roles = data[0]['data']['viewer']['roles']
             if roles:
@@ -382,5 +378,3 @@ if __name__ == "__main__":
     mail_client = MailClient("gmail.com")
     with SeekClient(mail_client) as seek_client:
         seek_client.login()
-        # resume_uri = seek_client._upload_attachment('CoverLetter', "application_pipeline/application_materials/electrical resume.pdf")
-        # logging.info(f"Uploaded resume, got uri: {resume_uri}")

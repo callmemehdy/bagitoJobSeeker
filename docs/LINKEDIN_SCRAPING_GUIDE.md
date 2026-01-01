@@ -53,9 +53,9 @@ Official API from LinkedIn - requires approval (2-4 weeks).
 ## Current Implementation
 
 **What Works:**
-- ✅ Indeed - Full scraping
-- ✅ Seek - Full scraping  
-- ❌ LinkedIn Posts - Requires Selenium
+-  Indeed - Full scraping
+-  Seek - Full scraping  
+-  LinkedIn Posts - Requires Selenium
 
 **Enable LinkedIn (Selenium):**
 ```bash

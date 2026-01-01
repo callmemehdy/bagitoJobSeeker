@@ -103,8 +103,8 @@ python3 test_email_config.py
 
 **Expected Output**:
 ```
-✓ Email sent successfully
-✓ Check your inbox for test email
+ Email sent successfully
+ Check your inbox for test email
 ```
 
 ### Common Issues
@@ -746,15 +746,15 @@ Check if email sending is commented out in code.
 
 ```
 bgt/
-├── .env                                  # Email credentials
-├── config/run_config.json                # Job search config
-├── application_pipeline/
-│   └── application_materials/
-│       ├── resume.pdf                    # Your resume
-│       ├── cover_letter.pdf              # Generated cover letter
-│       └── applied.json                  # Application tracking
-└── logs/
-    └── application.log                   # Detailed logs
+ .env                                  # Email credentials
+ config/run_config.json                # Job search config
+ application_pipeline/
+    application_materials/
+        resume.pdf                    # Your resume
+        cover_letter.pdf              # Generated cover letter
+        applied.json                  # Application tracking
+ logs/
+     application.log                   # Detailed logs
 ```
 
 ### Common Commands
@@ -883,21 +883,21 @@ tail -50 logs/application.log
 
 ### Common Mistakes
 
-- ❌ Using regular Gmail password instead of app password
-- ❌ Not enabling 2FA for Gmail
-- ❌ Wrong spelling variant for country
-- ❌ Resume not in correct location
-- ❌ Empty search terms in config
-- ❌ Expecting LinkedIn jobs to have emails (use linkedin_posts)
+-  Using regular Gmail password instead of app password
+-  Not enabling 2FA for Gmail
+-  Wrong spelling variant for country
+-  Resume not in correct location
+-  Empty search terms in config
+-  Expecting LinkedIn jobs to have emails (use linkedin_posts)
 
 ### Success Checklist
 
-- ✅ Gmail app password generated and added to .env
-- ✅ Resume.pdf in application_materials folder
-- ✅ run_config.json configured for your country
-- ✅ Test email sent successfully
-- ✅ Platforms configured (linkedin_posts recommended)
-- ✅ Search terms relevant to your skills
+-  Gmail app password generated and added to .env
+-  Resume.pdf in application_materials folder
+-  run_config.json configured for your country
+-  Test email sent successfully
+-  Platforms configured (linkedin_posts recommended)
+-  Search terms relevant to your skills
 
 ---
 

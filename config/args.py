@@ -33,7 +33,6 @@ def add_args():
                         help='Mail protocol e.g gmail.com, outlook.com',
                         default="gmail.com")
 
-    # Language variant - now comes from config, but can be overridden
     parser.add_argument('--spell_variant', 
                         type=str,
                         help='Spelling variant: british, american, australian, canadian, etc. (overrides config)',

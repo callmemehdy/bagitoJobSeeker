@@ -52,12 +52,10 @@ class MultiPlatformScraper:
                 logging.info(f"Scraping jobs for: {search_term}")
                 jobs = []
                 
-                # Scrape from each platform
                 for platform in self.platforms:
                     try:
                         platform_jobs = await self._scrape_platform(platform, search_term)
                         
-                        # Filter jobs with emails
                         jobs_with_emails = [
                             job for job in platform_jobs 
                             if job.get('emails') and len(job['emails']) > 0
@@ -118,7 +116,6 @@ class MultiPlatformScraper:
                     if response.status_code == 200:
                         soup = BeautifulSoup(response.text, 'html.parser')
                         
-                        # Try multiple selectors for Seek's job cards
                         job_cards = soup.find_all('article', attrs={'data-testid': 'job-card'})
                         if not job_cards:
                             job_cards = soup.find_all('article', class_=re.compile(r'.*job.*card.*', re.I))
@@ -258,7 +255,6 @@ class MultiPlatformScraper:
     def _parse_seek_job(self, card) -> Optional[Dict]:
         """Parse Seek job card from HTML"""
         try:
-            # Find job link
             link = card.find('a', attrs={'data-testid': 'job-card-title-link'})
             if not link:
                 link = card.find('a', href=re.compile(r'/job/'))
@@ -269,38 +265,31 @@ class MultiPlatformScraper:
             if job_url and not job_url.startswith('http'):
                 job_url = f"https://www.seek.com.au{job_url}"
             
-            # Extract job ID from URL
             job_id_match = re.search(r'/job/(\d+)', job_url)
             job_id = job_id_match.group(1) if job_id_match else 'unknown'
             
-            # Extract title
             title = link.get_text(strip=True) if link else "Unknown"
             
-            # Extract company
             company_elem = card.find('a', attrs={'data-testid': 'job-card-company-link'})
             if not company_elem:
                 company_elem = card.find('span', class_=re.compile(r'.*company.*', re.I))
             company = company_elem.get_text(strip=True) if company_elem else "Unknown"
             
-            # Extract location
             location_elem = card.find('span', attrs={'data-testid': 'job-card-location'})
             if not location_elem:
                 location_elem = card.find('span', class_=re.compile(r'.*location.*', re.I))
             location = location_elem.get_text(strip=True) if location_elem else "Unknown"
             
-            # Extract salary
             salary_elem = card.find('span', attrs={'data-testid': 'job-card-salary'})
             if not salary_elem:
                 salary_elem = card.find('span', class_=re.compile(r'.*salary.*', re.I))
             salary = salary_elem.get_text(strip=True) if salary_elem else "N/A"
             
-            # Extract short description
             desc_elem = card.find('span', attrs={'data-testid': 'job-card-snippet'})
             if not desc_elem:
                 desc_elem = card.find('p', class_=re.compile(r'.*snippet.*', re.I))
             description = desc_elem.get_text(strip=True) if desc_elem else ""
             
-            # Look for email or apply link in description
             emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', description)
             
             job_data = {
@@ -325,7 +314,6 @@ class MultiPlatformScraper:
                 }
             }
             
-            # Only return if has email (if requireEmail is True)
             if self.require_email and not emails:
                 return None
             
@@ -438,7 +426,6 @@ class MultiPlatformScraper:
     
     def _extract_phone_numbers(self, text: str) -> List[str]:
         """Extract phone numbers from text"""
-        # Phone number patterns (international and local formats)
         phone_patterns = [
             r'\+?\d{1,3}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}',
             r'\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}',
@@ -448,5 +435,4 @@ class MultiPlatformScraper:
         for pattern in phone_patterns:
             phones.extend(re.findall(pattern, text))
         
-        # Remove duplicates
         return list(set(phones))

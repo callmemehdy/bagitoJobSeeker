@@ -15,7 +15,6 @@ print("="*70)
 print("GMAIL APP PASSWORD TEST")
 print("="*70)
 
-# Get credentials
 email_address = os.getenv("EMAIL_ADDRESS")
 email_password = os.getenv("EMAIL_APP_PASSWORD")
 
@@ -34,7 +33,6 @@ print("TESTING GMAIL CONNECTION...")
 print("-"*70)
 
 try:
-    # Connect to Gmail SMTP
     print("\n1. Connecting to smtp.gmail.com:587...")
     server = smtplib.SMTP('smtp.gmail.com', 587)
     
@@ -46,7 +44,6 @@ try:
     
     print("4. Login successful!")
     
-    # Send a test email to yourself
     print(f"\n5. Sending test email to {email_address}...")
     
     msg = MIMEMultipart()

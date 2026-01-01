@@ -44,7 +44,6 @@ class LinkedInSeleniumScraper:
         if self.headless:
             chrome_options.add_argument('--headless=new')
         
-        # Common options for stability
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
@@ -52,7 +51,6 @@ class LinkedInSeleniumScraper:
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
         
-        # Install and setup ChromeDriver
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
@@ -159,7 +157,6 @@ class LinkedInSeleniumScraper:
             
             jobs = []
             
-            # Build search URL
             from urllib.parse import quote_plus
             search_url = f"https://www.linkedin.com/jobs/search/?keywords={quote_plus(search_term)}"
             if location:
@@ -169,17 +166,14 @@ class LinkedInSeleniumScraper:
             self.driver.get(search_url)
             time.sleep(3)
             
-            # Scroll to load more jobs
             last_height = self.driver.execute_script("return document.body.scrollHeight")
             scroll_attempts = 0
             max_scrolls = 5
             
             while scroll_attempts < max_scrolls and len(jobs) < max_results:
-                # Scroll down
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(2)
                 
-                # Parse job cards
                 job_cards = self.driver.find_elements(By.CSS_SELECTOR, "div.job-card-container, li.jobs-search-results__list-item")
                 
                 logging.info(f"Found {len(job_cards)} job cards on page")
@@ -196,7 +190,6 @@ class LinkedInSeleniumScraper:
                         logging.debug(f"Error parsing job card: {e}")
                         continue
                 
-                # Check if we've reached the bottom
                 new_height = self.driver.execute_script("return document.body.scrollHeight")
                 if new_height == last_height:
                     break
@@ -308,7 +301,6 @@ def main():
     from dotenv import load_dotenv
     load_dotenv()
     
-    # Load config for country settings
     import json
     try:
         with open('./config/run_config.json', 'r') as f:
@@ -339,7 +331,7 @@ def main():
     try:
         jobs = scraper.scrape_jobs("Software Engineer", location=location, max_results=10)
         
-        print(f"\n✅ Found {len(jobs)} jobs\n")
+        print(f"\n Found {len(jobs)} jobs\n")
         
         for job in jobs[:5]:  # Show first 5
             print(f"Title: {job['title']}")

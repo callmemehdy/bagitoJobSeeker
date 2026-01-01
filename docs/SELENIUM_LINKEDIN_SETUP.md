@@ -6,7 +6,7 @@ LinkedIn uses JavaScript to load content dynamically (Single Page Application). 
 
 ## Setup Instructions
 
-### 1. Install Dependencies (Already Done ✅)
+### 1. Install Dependencies (Already Done )
 
 ```bash
 uv add selenium webdriver-manager
@@ -20,7 +20,7 @@ LINKEDIN_EMAIL="your_email@example.com"
 LINKEDIN_PASSWORD="your_password"
 ```
 
-⚠️ **Security Note**: Keep your `.env` file private and never commit it to Git!
+ **Security Note**: Keep your `.env` file private and never commit it to Git!
 
 ### 3. Enable LinkedIn in Config
 
@@ -142,9 +142,9 @@ uv add --upgrade webdriver-manager
 
 | Platform | Method | Speed | Emails Found |
 |----------|--------|-------|--------------|
-| Indeed | BeautifulSoup | Fast ⚡ | Few |
-| Seek | BeautifulSoup | Fast ⚡ | Some |
-| LinkedIn | Selenium | Slower 🐢 | More |
+| Indeed | BeautifulSoup | Fast  | Few |
+| Seek | BeautifulSoup | Fast  | Some |
+| LinkedIn | Selenium | Slower  | More |
 
 ## Best Practices
 
@@ -173,11 +173,11 @@ uv add --upgrade webdriver-manager
 
 ## Next Steps
 
-1. ✅ Add credentials to `.env`
-2. ✅ Enable in `run_config.json`
-3. ✅ Run: `make test-linkedin`
-4. ✅ Verify jobs are found
-5. ✅ Run full pipeline: `make run FIRST_NAME=YourName`
+1.  Add credentials to `.env`
+2.  Enable in `run_config.json`
+3.  Run: `make test-linkedin`
+4.  Verify jobs are found
+5.  Run full pipeline: `make run FIRST_NAME=YourName`
 
 ## Support
 
