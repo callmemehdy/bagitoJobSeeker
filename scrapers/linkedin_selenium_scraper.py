@@ -182,8 +182,8 @@ class LinkedInSeleniumScraper:
                 post_selectors = [
                     "div.feed-shared-update-v2",
                     "div[data-id*='urn:li:activity']",
-                    "div.feed-shared-update-v2__description-wrapper",
-                    "span.break-words"
+                    "li.profile-creator-shared-feed-update__container",
+                    "div.feed-shared-update-v2__description-wrapper"
                 ]
                 
                 posts = []
@@ -230,13 +230,19 @@ class LinkedInSeleniumScraper:
         try:
             post_text = post.text
             
+            logging.debug(f"Post text length: {len(post_text)} chars, preview: {post_text[:100] if post_text else 'EMPTY'}")
+            
             if not post_text or len(post_text) < 50:
+                logging.debug(f"Post too short ({len(post_text)} chars), skipping")
                 return None
             
             emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', post_text)
             emails = list(set(emails))
             
+            logging.debug(f"Found {len(emails)} email(s) in post")
+            
             if not emails:
+                logging.debug(f"No emails found in post, skipping")
                 return None
             
             try:
