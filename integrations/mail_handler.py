@@ -45,12 +45,20 @@ class MailClient:
             return False
     
     def _prepare_email(self, recipient_email, job_data, email_body, attachments):
-        position = job_data.get('title')
+        position = job_data.get('title', job_data.get('roleId', 'Position'))
+        company = job_data.get('company', '')
+        
+        if company and position:
+            subject = f"Application for {position} at {company}"
+        elif position and position != 'Position':
+            subject = f"Application for {position} Position"
+        else:
+            subject = "Job Application - Resume and Cover Letter Attached"
         
         msg = MIMEMultipart()
         msg['From'] = self.user_email
         msg['To'] = recipient_email
-        msg['Subject'] = f"Application for {position}"
+        msg['Subject'] = subject
         
         msg.attach(MIMEText(email_body, 'plain'))
         
