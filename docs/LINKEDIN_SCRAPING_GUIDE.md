@@ -24,7 +24,7 @@ pip install selenium webdriver-manager
 
 # Add to config/run_config.json
 {
-  "use_selenium_for_linkedin": true
+  "platforms": ["linkedin"]
 }
 
 # Add LinkedIn credentials to .env
@@ -61,7 +61,7 @@ Official API from LinkedIn - requires approval (2-4 weeks).
 ```bash
 pip install selenium webdriver-manager
 # Add LINKEDIN_EMAIL/PASSWORD to .env
-# Set "use_selenium_for_linkedin": true in config
+# Selenium is enabled by default for LinkedIn
 make run FIRST_NAME=YourName
 ```
 

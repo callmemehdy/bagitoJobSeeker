@@ -29,7 +29,7 @@ Edit `config/run_config.json`:
 ```json
 {
   "platforms": ["seek", "indeed", "linkedin"],
-  "use_selenium_for_linkedin": true
+  "platforms": ["linkedin"]
 }
 ```
 
@@ -63,7 +63,7 @@ In `config/run_config.json`:
 ```json
 {
   "platforms": ["seek", "indeed", "linkedin"],
-  "use_selenium_for_linkedin": true,
+  "platforms": ["linkedin"],
   "maxResults": 50
 }
 ```
@@ -159,7 +159,7 @@ uv add --upgrade webdriver-manager
 ```json
 {
   "platforms": ["seek", "indeed", "linkedin"],
-  "use_selenium_for_linkedin": true,
+  "platforms": ["linkedin"],
   "maxResults": 50,
   "searchTerms": ["Software Engineer", "Python Developer"],
   "suburbOrCity": "Sydney"

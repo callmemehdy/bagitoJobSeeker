@@ -41,8 +41,14 @@ LINKEDIN_PASSWORD=""  # ← Add your LinkedIn password
 **`config/run_config.json`:**
 ```json
 {
-  "platforms": ["seek", "indeed"],
-  "use_selenium_for_linkedin": false  # ← Set to true to enable
+  "platforms": ["linkedin"]
+}
+```
+
+Note: Selenium is enabled by default for LinkedIn. To disable it, add:
+```json
+{
+  "use_selenium_for_linkedin": false
 }
 ```
 
@@ -75,10 +81,11 @@ LINKEDIN_PASSWORD="your_password"
 Edit `config/run_config.json`:
 ```json
 {
-  "platforms": ["seek", "indeed", "linkedin"],
-  "use_selenium_for_linkedin": true
+  "platforms": ["seek", "indeed", "linkedin"]
 }
 ```
+
+Note: Selenium is automatically enabled for LinkedIn.
 
 ### Step 3: Test It
 
