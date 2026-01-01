@@ -143,8 +143,9 @@ class LinkedInSeleniumScraper:
                 except Exception as e:
                     logging.debug(f"Could not add cookie {cookie.get('name')}: {e}")
             
-            self.driver.refresh()
-            time.sleep(3)
+            logging.info("Cookies loaded, navigating to feed to activate session...")
+            self.driver.get("https://www.linkedin.com/feed/")
+            time.sleep(5)
             
             return True
         except Exception as e:
