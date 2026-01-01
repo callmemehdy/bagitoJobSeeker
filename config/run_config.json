@@ -21,18 +21,19 @@
         "Java Developer",
         "C++ Developer"
     ],
-    "maxResults": 100,
-    "suburbOrCity": "San Francisco",
-    "state": "CA",
-    "country": "United States",
-    "countryCode": "US",
+    "maxResults": 50,
+    "SortBy": "KeywordsRelevance",
+    "suburbOrCity": "Casablanca",
+    "state": "",
+    "country": "Morocco",
+    "countryCode": "MA",
     "dateRange": 31,
     "requireEmail": false,
     "platforms": ["linkedin"],
     "use_selenium_for_linkedin": true,
     "locale": {
-        "language": "en-US",
-        "spellVariant": "american",
-        "currency": "USD"
+        "language": "fr-MA",
+        "spellVariant": "french",
+        "currency": "MAD"
     }
 }

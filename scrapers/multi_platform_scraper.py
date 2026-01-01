@@ -38,7 +38,7 @@ class MultiPlatformScraper:
         self.country_code = run_config.get('countryCode', 'AU')
         
         # Check if Selenium should be used for LinkedIn
-        self.use_selenium_for_linkedin = run_config.get('use_selenium_for_linkedin', False)
+        self.use_selenium_for_linkedin = run_config.get('use_selenium_for_linkedin', True)
         
         # Check if email is required
         self.require_email = run_config.get('requireEmail', False)
