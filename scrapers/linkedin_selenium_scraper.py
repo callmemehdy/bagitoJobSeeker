@@ -248,12 +248,19 @@ class LinkedInSeleniumScraper:
                 desc_elem = self.driver.find_element(By.CSS_SELECTOR, ".jobs-description, .jobs-box__html-content")
                 description = desc_elem.text
                 
+                logging.debug(f"Job {job_id} description length: {len(description)} chars")
+                
                 # Extract emails from description
                 emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', description)
                 emails = list(set(emails))  # Remove duplicates
                 
-            except:
-                logging.debug(f"Could not get full description for job {job_id}")
+                if emails:
+                    logging.info(f"✓ Found {len(emails)} email(s) in job {job_id}: {emails}")
+                else:
+                    logging.debug(f"No emails found in job {job_id}")
+                
+            except Exception as e:
+                logging.debug(f"Could not get full description for job {job_id}: {e}")
             
             job_data = {
                 'id': f"linkedin_{job_id}",
