@@ -47,19 +47,23 @@ class MultiPlatformScraper:
         """Scrape jobs from all enabled platforms"""
         try:
             all_data = {}
+            jobs_without_emails = {}
             
             for search_term in self.run_config['searchTerms']:
                 logging.info(f"Scraping jobs for: {search_term}")
                 jobs = []
+                no_email_jobs = []
                 
                 for platform in self.platforms:
                     try:
                         platform_jobs = await self._scrape_platform(platform, search_term)
                         
-                        jobs_with_emails = [
-                            job for job in platform_jobs 
-                            if job.get('emails') and len(job['emails']) > 0
-                        ]
+                        jobs_with_emails = []
+                        for job in platform_jobs:
+                            if job.get('emails') and len(job['emails']) > 0:
+                                jobs_with_emails.append(job)
+                            elif job.get('jobLink') or job.get('applyLink'):
+                                no_email_jobs.append(job)
                         
                         jobs.extend(jobs_with_emails)
                         logging.info(f"Found {len(jobs_with_emails)} jobs with emails on {platform} for '{search_term}'")
@@ -69,13 +73,30 @@ class MultiPlatformScraper:
                         continue
                 
                 all_data[search_term] = jobs
+                if no_email_jobs:
+                    jobs_without_emails[search_term] = no_email_jobs
                 logging.info(f"Total: {len(jobs)} jobs with emails for '{search_term}'")
+            
+            if jobs_without_emails:
+                self._send_to_discord(jobs_without_emails)
             
             return all_data
             
         except Exception as e:
             logging.error(f"Multi-platform scraping failed: {e}")
             raise
+    
+    def _send_to_discord(self, jobs_by_term: Dict[str, List]):
+        """Send jobs without emails to Discord webhook"""
+        try:
+            from integrations.discord_webhook import DiscordWebhook
+            
+            webhook = DiscordWebhook()
+            total = sum(len(jobs) for jobs in jobs_by_term.values())
+            logging.info(f"Sending {total} jobs without emails to Discord...")
+            webhook.send_batch(jobs_by_term)
+        except Exception as e:
+            logging.error(f"Failed to send to Discord: {e}")
     
     async def _scrape_platform(self, platform: str, search_term: str) -> List[Dict]:
         """Scrape jobs from a specific platform"""
