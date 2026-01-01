@@ -21,7 +21,7 @@
         "Java Developer",
         "C++ Developer"
     ],
-    "maxResults": 50,
+    "maxResults": 20,
     "SortBy": "KeywordsRelevance",
     "suburbOrCity": "Casablanca",
     "state": "",

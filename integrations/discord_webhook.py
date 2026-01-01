@@ -88,24 +88,53 @@ class DiscordWebhook:
                 if not jobs:
                     continue
                 
-                message = f"**{search_term}** - Found {len(jobs)} job(s):"
-                
                 embeds = []
-                for job in jobs[:10]:
+                for idx, job in enumerate(jobs[:10], 1):
                     title = job.get('title', 'Unknown Position')
                     company = job.get('company', 'Unknown Company')
                     link = job.get('jobLink', job.get('applyLink', 'No link'))
                     
+                    location_info = job.get('joblocationInfo', {})
+                    if isinstance(location_info, dict):
+                        location = location_info.get('displayLocation', 'Unknown Location')
+                    else:
+                        location = job.get('location', 'Unknown Location')
+                    
+                    description = job.get('content', job.get('description', ''))
+                    if isinstance(description, dict):
+                        description = description.get('jobHook', '')
+                    if description:
+                        description = description[:200] + "..." if len(description) > 200 else description
+                    else:
+                        description = "No description available"
+                    
                     embed = {
-                        "title": title,
-                        "description": f"Company: {company}",
+                        "title": f"{idx}. {title}",
+                        "description": description,
                         "url": link,
-                        "color": 3447003
+                        "color": 5814783,
+                        "fields": [
+                            {
+                                "name": "🏢 Company",
+                                "value": company,
+                                "inline": True
+                            },
+                            {
+                                "name": "📍 Location",
+                                "value": location,
+                                "inline": True
+                            },
+                            {
+                                "name": "🔗 Apply",
+                                "value": f"[Click here]({link})",
+                                "inline": False
+                            }
+                        ]
                     }
                     embeds.append(embed)
                 
                 payload = {
-                    "content": message,
+                    "content": f"**🔍 {search_term}** - Found {len(jobs)} job(s) without email contacts:",
                     "embeds": embeds
                 }
                 

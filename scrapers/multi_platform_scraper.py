@@ -94,6 +94,12 @@ class MultiPlatformScraper:
             webhook = DiscordWebhook()
             total = sum(len(jobs) for jobs in jobs_by_term.values())
             logging.info(f"Sending {total} jobs without emails to Discord...")
+            
+            for term, jobs in jobs_by_term.items():
+                if jobs:
+                    sample = jobs[0]
+                    logging.debug(f"Sample job data for {term}: title={sample.get('title')}, company={sample.get('company')}, link={sample.get('jobLink', sample.get('applyLink'))}")
+            
             webhook.send_batch(jobs_by_term)
         except Exception as e:
             logging.error(f"Failed to send to Discord: {e}")
