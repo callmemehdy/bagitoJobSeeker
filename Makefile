@@ -1,4 +1,4 @@
-.PHONY: help install test-email test-cache test-scraper test-linkedin check-status run clean
+.PHONY: help install test-email test-scraper test-linkedin check-status run clean
 
 # Default target
 help:
@@ -11,7 +11,6 @@ help:
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test-email       Test Gmail configuration"
-	@echo "  make test-cache       Test cached data fallback"
 	@echo "  make test-scraper     Test custom Seek scraper"
 	@echo "  make test-linkedin    Test LinkedIn Selenium scraper"
 	@echo ""
@@ -24,7 +23,7 @@ help:
 	@echo "  make logs             View recent application logs"
 	@echo ""
 	@echo "Maintenance:"
-	@echo "  make clean            Clean up cache and temporary files"
+	@echo "  make clean            Clean up temporary files"
 	@echo "  make reset-applied    Reset applied jobs tracker"
 	@echo ""
 	@echo "Documentation:"
@@ -33,8 +32,7 @@ help:
 	@echo ""
 
 clean_info:
-	@echo "reset the info.json hhh"
-	@echo -n '[]' > info.json
+	@echo "This command is deprecated and will be removed."
 
 # Install dependencies
 install:
@@ -52,15 +50,10 @@ test-email:
 	@echo " Testing Gmail configuration..."
 	@uv run python3 test_email_config.py
 
-# Test cached data fallback
-test-cache:
-	@echo "  Testing cached data fallback..."
-	@uv run python3 test_cached_fallback.py
-
 # Test custom scraper
 test-scraper:
-	@echo " Testing custom Seek scraper..."
-	@uv run python3 test_custom_scraper.py
+	@echo " Testing custom multi-platform scraper..."
+	@uv run python3 -c "import asyncio; from scrapers.multi_platform_scraper import MultiPlatformScraper; from common.utils import load_json_file; asyncio.run(MultiPlatformScraper(load_json_file('./config/run_config.json')).scrape())"
 
 # Test LinkedIn Selenium scraper
 test-linkedin:
@@ -123,11 +116,10 @@ dev-setup: install
 	@echo "Recommended next steps:"
 	@echo "1. Set up .env file with your credentials"
 	@echo "2. Run: make test-email"
-	@echo "3. Run: make test-cache"
-	@echo "4. Run: make run FIRST_NAME=YourName"
+	@echo "3. Run: make run FIRST_NAME=YourName"
 
 # Quick test (all tests)
-test: test-cache test-email test-scraper test-linkedin
+test: test-email test-scraper test-linkedin
 	@echo " All tests completed!"
 
 push:

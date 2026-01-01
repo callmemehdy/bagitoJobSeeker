@@ -1,20 +1,17 @@
 {
-    "searchTerms": [
-        "Software Engineer"
-    ],
-    "maxResults": 20,
+    "searchTerms": ["Software Engineer", "Full Stack Developer", "Software Engineer Intern"],
+    "maxResults": 50,
     "SortBy": "KeywordsRelevance",
-    "suburbOrCity": "Sydney",
-    "state": "NSW",
-    "country": "Australia",
-    "countryCode": "AU",
+    "suburbOrCity": "San Francisco",
+    "state": "CA",
+    "country": "United States",
+    "countryCode": "US",
     "dateRange": 31,
     "requireEmail": false,
-    "platforms": ["seek", "indeed", "linkedin"],
-    "use_selenium_for_linkedin": true,
+    "platforms": ["linkedin", "indeed"],
     "locale": {
-        "language": "en-AU",
-        "spellVariant": "australian",
-        "currency": "AUD"
+        "language": "en-US",
+        "spellVariant": "american",
+        "currency": "USD"
     }
 }

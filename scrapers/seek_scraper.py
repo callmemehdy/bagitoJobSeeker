@@ -23,9 +23,8 @@ class SeekScraper:
     
     BASE_URL = "https://www.seek.com.au"
     
-    def __init__(self, run_config, cached_data_path='./info.json'):
+    def __init__(self, run_config):
         self.run_config = run_config
-        self.cached_data_path = cached_data_path
         self.session = requests.Session(impersonate="chrome110")
         
     async def scrape(self) -> Dict[str, List]:

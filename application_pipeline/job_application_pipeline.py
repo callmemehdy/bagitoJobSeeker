@@ -16,7 +16,7 @@ logging.basicConfig(
 
 class ApplicationPipeline:
     def __init__(self, run_config, args):
-        self.scraper = JobScraper(run_config, cached_data_path='./info.json')
+        self.scraper = JobScraper(run_config)
         self.args = args
         self.run_config = run_config
         
@@ -75,13 +75,20 @@ class ApplicationPipeline:
                             self.agent = AIAgent(self.args.first_name).agent
                         
                         position = job.get('title', '')
-                        raw_content = job.get('content', {})
-                        job_description = raw_content.get('sections')
-                        if not job_description:
+                        raw_content = job.get('content', '')
+                        
+                        # Handle both string content and dict with sections
+                        if isinstance(raw_content, dict):
+                            job_description = raw_content.get('sections', [])
+                            job_description_text = " ".join(job_description) if job_description else ""
+                        else:
+                            job_description_text = raw_content
+                        
+                        if not job_description_text:
                             logging.error("No job description found, unable to process job, skipping.")
                             continue
                         
-                        score = self.calculate_resume_jd_similarity(" ".join(job_description))
+                        score = self.calculate_resume_jd_similarity(job_description_text)
                         if score < self.args.min_score:
                             logging.info(f"Low similarity score {score} for job {job_id}, skipping.")
                             continue

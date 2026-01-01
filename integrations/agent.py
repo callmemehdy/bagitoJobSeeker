@@ -29,7 +29,12 @@ class GeminiAgent:
     
     def prepare_cover_letter(self, job_data, resume, spell_variant=None):
         job_content = job_data.get('content', {})
-        job_description = job_content.get('sections', '')
+        
+        # Handle both string content and dict with sections
+        if isinstance(job_content, dict):
+            job_description = job_content.get('sections', '')
+        else:
+            job_description = job_content
         
         company_profile = job_data.get('companyProfile', {})
         company_name = company_profile.get('name', 'N/A')
@@ -251,7 +256,14 @@ class MetaAgent:
         self.name = name
     
     def prepare_cover_letter(self, job_data, resume, spell_variant=None):
-        job_description = job_data.get('content', '').get('sections', '')
+        job_content = job_data.get('content', '')
+        
+        # Handle both string content and dict with sections
+        if isinstance(job_content, dict):
+            job_description = job_content.get('sections', '')
+        else:
+            job_description = job_content
+        
         position = job_data.get('title', 'Unknown position')
         company_name = job_data.get('companyProfile', {}).get('name', 'Unknown company')
 

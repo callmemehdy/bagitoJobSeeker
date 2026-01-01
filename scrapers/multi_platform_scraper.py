@@ -29,10 +29,8 @@ class MultiPlatformScraper:
         'indeed': 'https://au.indeed.com',
     }
     
-    def __init__(self, run_config, cached_data_path='./info.json'):
+    def __init__(self, run_config):
         self.run_config = run_config
-        self.cached_data_path = cached_data_path
-        self.links_path = './links.json'  # For jobs without emails
         self.platforms = run_config.get('platforms', ['seek', 'indeed'])
         
         # Get country settings from config
@@ -49,7 +47,6 @@ class MultiPlatformScraper:
         """Scrape jobs from all enabled platforms"""
         try:
             all_data = {}
-            jobs_without_emails = []  # Track jobs without emails but with apply links
             
             for search_term in self.run_config['searchTerms']:
                 logging.info(f"Scraping jobs for: {search_term}")
@@ -60,15 +57,11 @@ class MultiPlatformScraper:
                     try:
                         platform_jobs = await self._scrape_platform(platform, search_term)
                         
-                        # Separate jobs with emails vs just links
-                        jobs_with_emails = []
-                        for job in platform_jobs:
-                            if job.get('emails') and len(job['emails']) > 0:
-                                jobs_with_emails.append(job)
-                            elif job.get('applyLink') or job.get('jobLink'):
-                                # Has apply link but no email - save to links.json
-                                jobs_without_emails.append(job)
-                                logging.info(f"Job without email but with link: {job['id']} - {job['title']}")
+                        # Filter jobs with emails
+                        jobs_with_emails = [
+                            job for job in platform_jobs 
+                            if job.get('emails') and len(job['emails']) > 0
+                        ]
                         
                         jobs.extend(jobs_with_emails)
                         logging.info(f"Found {len(jobs_with_emails)} jobs with emails on {platform} for '{search_term}'")
@@ -79,15 +72,6 @@ class MultiPlatformScraper:
                 
                 all_data[search_term] = jobs
                 logging.info(f"Total: {len(jobs)} jobs with emails for '{search_term}'")
-            
-            # Save jobs with emails to cache
-            if all_data:
-                self._save_to_cache(all_data)
-            
-            # Save jobs without emails to links.json
-            if jobs_without_emails:
-                self._save_links(jobs_without_emails)
-                logging.info(f"Saved {len(jobs_without_emails)} jobs with apply links (no emails) to {self.links_path}")
             
             return all_data
             
@@ -466,80 +450,3 @@ class MultiPlatformScraper:
         
         # Remove duplicates
         return list(set(phones))
-    
-    def _save_to_cache(self, data: Dict):
-        """Save scraped data to cache file"""
-        try:
-            # Flatten all jobs into a single list for cache
-            all_jobs = []
-            for search_term, jobs in data.items():
-                all_jobs.extend(jobs)
-            
-            # Remove duplicates by job ID
-            seen_ids = set()
-            unique_jobs = []
-            for job in all_jobs:
-                if job['id'] not in seen_ids:
-                    seen_ids.add(job['id'])
-                    unique_jobs.append(job)
-            
-            with open(self.cached_data_path, 'w', encoding='utf-8') as f:
-                json.dump(unique_jobs, f, indent=2, ensure_ascii=False)
-            
-            logging.info(f"Saved {len(unique_jobs)} jobs to {self.cached_data_path}")
-            
-        except Exception as e:
-            logging.error(f"Error saving to cache: {e}")
-    
-    def _save_links(self, jobs: List[Dict]):
-        """Save jobs without emails but with apply links to links.json"""
-        try:
-            # Load existing links if file exists
-            existing_links = []
-            if Path(self.links_path).exists():
-                try:
-                    with open(self.links_path, 'r', encoding='utf-8') as f:
-                        existing_links = json.load(f)
-                except:
-                    pass
-            
-            # Format job data for links file
-            for job in jobs:
-                # Handle content as either dict or string
-                content = job.get('content', '')
-                if isinstance(content, dict):
-                    job_hook = content.get('jobHook', '')
-                    sections = content.get('sections', [])
-                elif isinstance(content, str):
-                    job_hook = content[:500]
-                    sections = []
-                else:
-                    job_hook = ''
-                    sections = []
-                
-                link_entry = {
-                    'id': job['id'],
-                    'title': job.get('title', 'Unknown'),
-                    'company': job.get('company', 'Unknown'),
-                    'platform': job.get('platform', 'unknown'),
-                    'applyLink': job.get('applyLink', job.get('jobLink', '')),
-                    'jobLink': job.get('jobLink', ''),
-                    'description': job_hook[:500],
-                    'fullDescription': sections,
-                    'location': job.get('joblocationInfo', {}).get('displayLocation', 'Unknown'),
-                    'salary': job.get('salary', 'N/A'),
-                    'scrapedDate': datetime.now().isoformat()
-                }
-                
-                # Check if not already in list
-                if not any(link['id'] == link_entry['id'] for link in existing_links):
-                    existing_links.append(link_entry)
-            
-            # Save to file
-            with open(self.links_path, 'w', encoding='utf-8') as f:
-                json.dump(existing_links, f, indent=2, ensure_ascii=False)
-            
-            logging.info(f"Updated {self.links_path} with {len(existing_links)} total job links")
-            
-        except Exception as e:
-            logging.error(f"Error saving links: {e}")
