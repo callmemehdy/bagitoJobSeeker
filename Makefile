@@ -31,9 +31,6 @@ help:
 	@echo ""
 	@echo ""
 
-clean_info:
-	@echo "This command is deprecated and will be removed."
-
 # Install dependencies
 install:
 	@echo " Installing dependencies..."
