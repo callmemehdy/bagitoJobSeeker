@@ -1,25 +1,6 @@
 {
     "searchTerms": [
-        "Software Engineer Intern",
-        "Full Stack Developer Intern",
-        "Backend Engineer Intern",
-        "Frontend Engineer",
-        "Python Developer Intern",
-        "JavaScript Developer Intern",
-        "React Developer",
-        "Node.js Developer",
-        "DevOps Engineer",
-        "Cloud Engineer",
-        "Data Engineer Intern",
-        "Machine Learning Engineer Intern",
-        "AI Engineer Intern",
-        "Software Developer",
-        "Web Developer",
-        "Mobile Developer",
-        "iOS Developer",
-        "Android Developer",
-        "Java Developer",
-        "C++ Developer Intern"
+        "Software Engineer Intern"
     ],
     "maxResults": 1,
     "SortBy": "KeywordsRelevance",

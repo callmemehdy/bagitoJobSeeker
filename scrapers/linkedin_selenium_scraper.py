@@ -138,7 +138,13 @@ class LinkedInSeleniumScraper:
                 cookies = json.load(f)
             
             for cookie in cookies:
-                self.driver.add_cookie(cookie)
+                try:
+                    self.driver.add_cookie(cookie)
+                except Exception as e:
+                    logging.debug(f"Could not add cookie {cookie.get('name')}: {e}")
+            
+            self.driver.refresh()
+            time.sleep(3)
             
             return True
         except Exception as e:
