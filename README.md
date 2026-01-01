@@ -92,7 +92,23 @@ Edit `config/run_config.json`:
 }
 ```
 
-### 5. Test Configuration
+### 5. Fresh LinkedIn Login
+
+Generate fresh authentication cookies:
+
+```bash
+make login
+```
+
+This will:
+- Open a browser window
+- Log you into LinkedIn
+- Save authentication cookies
+- Verify login works
+
+**Note:** Run `make login` again if LinkedIn cookies expire.
+
+### 6. Test Configuration
 
 ```bash
 # Test email setup
@@ -105,7 +121,7 @@ make test-linkedin
 make test-scraper
 ```
 
-### 6. Run the Application
+### 7. Run the Application
 
 ```bash
 # Run with your first name

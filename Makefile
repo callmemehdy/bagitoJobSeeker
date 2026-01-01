@@ -1,4 +1,4 @@
-.PHONY: help install test-email test-scraper test-linkedin check-status run clean
+.PHONY: help install test-email test-scraper test-linkedin check-status run clean login
 
 # Default target
 help:
@@ -8,6 +8,7 @@ help:
 	@echo ""
 	@echo "Setup & Installation:"
 	@echo "  make install          Install dependencies and setup environment"
+	@echo "  make login            Fresh LinkedIn login (regenerate cookies)"
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test-email       Test Gmail configuration"
@@ -41,6 +42,15 @@ install:
 	@echo "1. Copy .env.example to .env"
 	@echo "2. Fill in your credentials in .env"
 	@echo "3. Run: make test-email"
+
+# Fresh LinkedIn login
+login:
+	@echo " Starting fresh LinkedIn login..."
+	@echo "This will regenerate your LinkedIn cookies."
+	@echo ""
+	@uv run python3 fresh_login.py
+	@echo ""
+	@echo " Fresh cookies saved! You can now run the bot."
 
 # Test email configuration
 test-email:
