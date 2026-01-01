@@ -1,6 +1,6 @@
 # Complete Documentation - Job Application Bot
 
-**Last Updated**: December 30, 2024
+**Last Updated**: January 1, 2026
 
 This document contains all essential information for setting up and using the automated job application system.
 
@@ -24,7 +24,7 @@ This document contains all essential information for setting up and using the au
 ```bash
 # Clone and install
 git clone <repository-url>
-cd bgt
+cd bagitoJobSeeker
 make install
 ```
 
@@ -48,7 +48,7 @@ Edit `config/run_config.json`:
 {
     "searchTerms": ["Software Engineer"],
     "maxResults": 20,
-    "platforms": ["linkedin_posts"],
+    "platforms": ["linkedin"],
     "suburbOrCity": "Sydney",
     "country": "Australia",
     "countryCode": "AU",
@@ -137,7 +137,7 @@ python3 test_email_config.py
 **Configuration**:
 ```json
 {
-    "platforms": ["linkedin_posts"],
+    "platforms": ["linkedin"],
     "searchTerms": ["Software Engineer"]
 }
 ```
@@ -193,9 +193,8 @@ Send resume to: jobs@company.com"
 
 | Platform | Source | Emails | Auto-Apply | Best For |
 |----------|--------|--------|------------|----------|
-| **linkedin_posts** | User posts | Common | YES | Direct contact, startups |
-| **linkedin** | Job listings | Rare | NO | Large companies |
-| **indeed** | Job listings | Sometimes | Sometimes | General jobs |
+| **linkedin** | Job posts (Selenium) | Common | NO | Direct contact, startups |
+| **indeed** | Job listings | Rare | NO | General jobs |
 | **seek** | Job listings | Sometimes | YES* | Australia/NZ |
 
 *Seek requires login
@@ -205,7 +204,7 @@ Send resume to: jobs@company.com"
 Combine for maximum coverage:
 ```json
 {
-    "platforms": ["linkedin_posts", "indeed", "seek"]
+    "platforms": ["linkedin", "indeed", "seek"]
 }
 ```
 
@@ -481,7 +480,7 @@ make test-scraper
 2. **Try Different Platforms**
 ```json
 {
-    "platforms": ["linkedin_posts", "indeed", "seek"]
+    "platforms": ["linkedin", "indeed", "seek"]
 }
 ```
 
@@ -507,10 +506,10 @@ curl https://www.linkedin.com
 
 **Solutions**:
 
-1. **Use linkedin_posts Platform**
+1. **Use linkedin Platform**
 ```json
 {
-    "platforms": ["linkedin_posts"]
+    "platforms": ["linkedin"]
 }
 ```
 LinkedIn posts often include emails, official jobs don't.
@@ -710,7 +709,7 @@ Refresh token saved in `credentials/seek_refresh_token.json`.
 3. **Or Skip Seek**
 ```json
 {
-    "platforms": ["linkedin_posts", "indeed"]
+    "platforms": ["linkedin", "indeed"]
 }
 ```
 
@@ -786,7 +785,7 @@ echo '{"jobs": {}, "email_history": {}}' > application_pipeline/application_mate
 {
     "searchTerms": ["Software Engineer", "Developer"],
     "maxResults": 100,
-    "platforms": ["linkedin_posts", "indeed", "seek"],
+    "platforms": ["linkedin", "indeed", "seek"],
     "dateRange": 31
 }
 ```
@@ -796,7 +795,7 @@ echo '{"jobs": {}, "email_history": {}}' > application_pipeline/application_mate
 {
     "searchTerms": ["Software Engineer"],
     "maxResults": 50,
-    "platforms": ["linkedin_posts"],
+    "platforms": ["linkedin"],
     "requireEmail": true
 }
 ```
@@ -807,7 +806,7 @@ echo '{"jobs": {}, "email_history": {}}' > application_pipeline/application_mate
     "suburbOrCity": "Sydney",
     "country": "Australia",
     "countryCode": "AU",
-    "platforms": ["seek", "linkedin_posts"],
+    "platforms": ["seek", "linkedin"],
     "locale": {
         "spellVariant": "australian"
     }
@@ -820,7 +819,7 @@ echo '{"jobs": {}, "email_history": {}}' > application_pipeline/application_mate
     "suburbOrCity": "San Francisco",
     "country": "United States",
     "countryCode": "US",
-    "platforms": ["linkedin_posts", "indeed"],
+    "platforms": ["linkedin", "indeed"],
     "locale": {
         "spellVariant": "american"
     }
@@ -836,7 +835,7 @@ echo '{"jobs": {}, "email_history": {}}' > application_pipeline/application_mate
 - Verify emails are sent correctly
 - Check cover letter quality
 
-### 2. Use linkedin_posts
+### 2. Use linkedin
 - Higher success rate
 - Direct contact emails
 - Automatic applications
@@ -888,7 +887,7 @@ tail -50 logs/application.log
 -  Wrong spelling variant for country
 -  Resume not in correct location
 -  Empty search terms in config
--  Expecting LinkedIn jobs to have emails (use linkedin_posts)
+-  Expecting LinkedIn jobs to have emails (use linkedin)
 
 ### Success Checklist
 
@@ -896,7 +895,7 @@ tail -50 logs/application.log
 -  Resume.pdf in application_materials folder
 -  run_config.json configured for your country
 -  Test email sent successfully
--  Platforms configured (linkedin_posts recommended)
+-  Platforms configured (linkedin recommended)
 -  Search terms relevant to your skills
 
 ---

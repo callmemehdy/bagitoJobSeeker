@@ -268,7 +268,7 @@ Complete documentation available in: **[docs/DOCUMENTATION.md](docs/DOCUMENTATIO
 Includes:
 - Quick Start Guide
 - Gmail Setup Instructions
-- Platform Features (LinkedIn Posts, Indeed, Seek)
+- Platform Features (LinkedIn, Indeed, Seek)
 - Country Configuration
 - Running 24/7 Instructions
 - Complete Troubleshooting Guide
