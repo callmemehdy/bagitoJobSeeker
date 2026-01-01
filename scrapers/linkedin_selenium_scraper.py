@@ -162,7 +162,14 @@ class LinkedInSeleniumScraper:
             
             logging.info(f"Searching LinkedIn posts: {search_url}")
             self.driver.get(search_url)
-            time.sleep(3)
+            time.sleep(5)
+            
+            page_source_preview = self.driver.page_source[:500]
+            if "login" in page_source_preview.lower() or "sign in" in page_source_preview.lower():
+                logging.error("LinkedIn redirected to login page - authentication failed")
+                return []
+            
+            logging.info("Successfully loaded LinkedIn feed search page")
             
             last_height = self.driver.execute_script("return document.body.scrollHeight")
             scroll_attempts = 0
@@ -170,11 +177,27 @@ class LinkedInSeleniumScraper:
             
             while scroll_attempts < max_scrolls and len(jobs) < max_results:
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(2)
+                time.sleep(3)
                 
-                posts = self.driver.find_elements(By.CSS_SELECTOR, "div.feed-shared-update-v2, div.update-components-text")
+                post_selectors = [
+                    "div.feed-shared-update-v2",
+                    "div[data-id*='urn:li:activity']",
+                    "div.feed-shared-update-v2__description-wrapper",
+                    "span.break-words"
+                ]
                 
-                logging.info(f"Found {len(posts)} posts on page")
+                posts = []
+                for selector in post_selectors:
+                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                    if elements:
+                        posts = elements
+                        logging.info(f"Found {len(posts)} posts using selector: {selector}")
+                        break
+                
+                if not posts:
+                    logging.warning("No posts found with any selector")
+                    scroll_attempts += 1
+                    continue
                 
                 for post in posts:
                     if len(jobs) >= max_results:
