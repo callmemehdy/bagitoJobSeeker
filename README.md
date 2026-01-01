@@ -58,7 +58,16 @@ LINKEDIN_PASSWORD="your_linkedin_password"
 ```
 
 **Important:** You need a Gmail App Password (not your regular password)
--  See: [docs/GMAIL_APP_PASSWORD_SETUP.md](docs/GMAIL_APP_PASSWORD_SETUP.md)
+
+**How to get Gmail App Password:**
+
+1. Enable 2-Factor Authentication on your Google Account
+2. Go to: https://myaccount.google.com/apppasswords
+3. Select "Mail" and "Other (Custom name)"
+4. Name it: "Job Application Bot"
+5. Click "Generate"
+6. Copy the 16-character password (no spaces)
+7. Add it to your `.env` file as `EMAIL_APP_PASSWORD`
 
 ### 3. Add Your Resume
 
@@ -192,7 +201,12 @@ make test-scraper
 
 You need a Gmail App Password, not your regular password.
 
- See: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for Gmail setup instructions.
+**Setup steps:**
+1. Enable 2FA: https://myaccount.google.com/security
+2. Create App Password: https://myaccount.google.com/apppasswords
+3. Copy the 16-character code to `.env`
+
+For detailed Gmail configuration, see the DOCUMENTATION.md file.
 
 ### Gemini API Quota Exceeded?
 
