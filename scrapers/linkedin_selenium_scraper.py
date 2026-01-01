@@ -158,9 +158,11 @@ class LinkedInSeleniumScraper:
             jobs = []
             
             from urllib.parse import quote_plus
-            search_url = f"https://www.linkedin.com/feed/?keywords={quote_plus(search_term)}"
+            search_url = f"https://www.linkedin.com/jobs/search/?keywords={quote_plus(search_term)}"
+            if location:
+                search_url += f"&location={quote_plus(location)}"
             
-            logging.info(f"Searching LinkedIn feed: {search_url}")
+            logging.info(f"Searching LinkedIn jobs: {search_url}")
             self.driver.get(search_url)
             time.sleep(5)
             
@@ -179,36 +181,20 @@ class LinkedInSeleniumScraper:
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(3)
                 
-                post_selectors = [
-                    "div.feed-shared-update-v2",
-                    "div[data-id*='urn:li:activity']",
-                    "li.profile-creator-shared-feed-update__container",
-                    "div.feed-shared-update-v2__description-wrapper"
-                ]
+                job_cards = self.driver.find_elements(By.CSS_SELECTOR, "div.job-card-container, li.jobs-search-results__list-item, div.base-card")
                 
-                posts = []
-                for selector in post_selectors:
-                    elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
-                    if elements:
-                        posts = elements
-                        logging.info(f"Found {len(posts)} posts using selector: {selector}")
-                        break
+                logging.info(f"Found {len(job_cards)} job cards on page")
                 
-                if not posts:
-                    logging.warning("No posts found with any selector")
-                    scroll_attempts += 1
-                    continue
-                
-                for post in posts:
+                for card in job_cards:
                     if len(jobs) >= max_results:
                         break
                     
                     try:
-                        job = self._parse_post(post, search_term)
+                        job = self._parse_job_card(card)
                         if job and job['id'] not in [j['id'] for j in jobs]:
                             jobs.append(job)
                     except Exception as e:
-                        logging.debug(f"Error parsing post: {e}")
+                        logging.debug(f"Error parsing job card: {e}")
                         continue
                 
                 new_height = self.driver.execute_script("return document.body.scrollHeight")
@@ -218,7 +204,7 @@ class LinkedInSeleniumScraper:
                 last_height = new_height
                 scroll_attempts += 1
             
-            logging.info(f"Scraped {len(jobs)} jobs from LinkedIn posts for '{search_term}'")
+            logging.info(f"Scraped {len(jobs)} jobs from LinkedIn for '{search_term}'")
             return jobs
             
         except Exception as e:
