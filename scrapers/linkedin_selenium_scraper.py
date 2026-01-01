@@ -158,9 +158,9 @@ class LinkedInSeleniumScraper:
             jobs = []
             
             from urllib.parse import quote_plus
-            search_url = f"https://www.linkedin.com/search/results/content/?keywords={quote_plus(search_term + ' hiring')}"
+            search_url = f"https://www.linkedin.com/feed/?keywords={quote_plus(search_term)}"
             
-            logging.info(f"Searching LinkedIn posts: {search_url}")
+            logging.info(f"Searching LinkedIn feed: {search_url}")
             self.driver.get(search_url)
             time.sleep(5)
             

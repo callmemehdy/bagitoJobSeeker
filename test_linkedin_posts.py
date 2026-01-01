@@ -1,45 +1,52 @@
+import os
 import time
-import logging
+import json
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 
-logging.basicConfig(level=logging.INFO)
+cookies_file = "./credentials/linkedin_cookies.json"
 
-chrome_options = Options()
-chrome_options.add_argument("--no-sandbox")
-chrome_options.add_argument("--disable-dev-shm-usage")
+options = Options()
+options.add_argument("--no-sandbox")
 
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
 try:
-    print("Going to LinkedIn feed search...")
-    driver.get("https://www.linkedin.com/search/results/content/?keywords=software+engineer+hiring")
-    time.sleep(5)
+    driver.get("https://www.linkedin.com")
+    time.sleep(2)
     
-    print("\nLooking for feed posts...")
-    selectors = [
-        "div.feed-shared-update-v2",
-        "div.update-components-text",
-        "div[class*='feed']",
-        "div[class*='update']",
-        "article",
-        "div.scaffold-finite-scroll__content > div"
-    ]
+    if os.path.exists(cookies_file):
+        with open(cookies_file, 'r') as f:
+            cookies = json.load(f)
+        for cookie in cookies:
+            try:
+                driver.add_cookie(cookie)
+            except:
+                pass
+        driver.refresh()
+        time.sleep(5)
     
-    for selector in selectors:
-        elements = driver.find_elements(By.CSS_SELECTOR, selector)
-        print(f"Selector '{selector}': found {len(elements)} elements")
-        if len(elements) > 0:
-            print(f"  First element text preview: {elements[0].text[:200] if elements[0].text else 'NO TEXT'}")
+    # Just go to feed and let user search manually
+    driver.get("https://www.linkedin.com/feed/")
+    time.sleep(3)
     
-    print("\n\nPage source preview (first 2000 chars):")
-    print(driver.page_source[:2000])
+    print("\n" + "="*70)
+    print("LINKEDIN FEED LOADED")
+    print("="*70)
+    print("\nInstructions:")
+    print("1. Use LinkedIn's search bar")
+    print("2. Search for: 'software engineer hiring'")
+    print("3. Look at the posts")
+    print("4. Do you see ANY emails in the visible posts?")
+    print("\nLet me know what you see!")
+    print("="*70 + "\n")
+    
+    input("Press Enter when done...")
     
 except Exception as e:
     print(f"Error: {e}")
 finally:
-    input("\nPress Enter to close browser...")
     driver.quit()
