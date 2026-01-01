@@ -367,17 +367,17 @@ INFO - Application complete: 1 of 3 jobs processed
 
 ### Files Generated
 
-**info.json**: Scraped jobs cache
+**Applied Jobs Tracking** (`applied.json`):
 ```json
 {
-  "Software Engineer": [
-    {
-      "id": "linkedin_post_12345",
-      "title": "Software Engineer",
-      "company": "Tech Startup",
-      "emails": ["jobs@techstartup.io"]
+  "jobs": {
+    "linkedin_post_12345": {
+      "applied_on": "2024-12-30T10:30:00",
+      "position": "Software Engineer",
+      "similarity_score": 0.85
     }
-  ]
+  }
+}
 }
 ```
 
@@ -455,9 +455,7 @@ python3 test_email_config.py
 
 **Test Scraper**:
 ```bash
-# Edit config to use cached data
-# Set "platforms": []
-make run FIRST_NAME=Mehdi
+make test-scraper
 ```
 
 **Dry Run** (no emails sent):
@@ -520,13 +518,11 @@ LinkedIn posts often include emails, official jobs don't.
 2. **Try Indeed**
 Indeed jobs sometimes include contact emails.
 
-3. **Check Cached Data**
-```bash
-cat info.json | grep -i "email"
-```
-
-4. **Increase Search Volume**
+3. **Increase Search Volume**
 More jobs = higher chance of finding emails.
+
+4. **Use LinkedIn with Selenium**
+LinkedIn posts often have contact emails.
 
 ### Email Sending Failed
 
@@ -609,7 +605,7 @@ echo '{"jobs": {}, "email_history": {}}' > applied.json
 
 **Apify** (if using):
 - Monthly limit exceeded
-- Solution: Use custom scraper (automatic fallback)
+- Solution: Custom scraper is used automatically
 
 **Gemini** (if using):
 - 20 requests/day free tier
@@ -634,13 +630,10 @@ echo '{"jobs": {}, "email_history": {}}' > applied.json
 ping linkedin.com
 ```
 
-2. **Use Cached Data**
-Bot automatically falls back to cached data in `info.json`.
-
-3. **Try Different Platform**
+2. **Try Different Platform**
 ```json
 {
-    "platforms": ["indeed"]
+    "platforms": ["indeed", "linkedin"]
 }
 ```
 
@@ -728,10 +721,7 @@ Refresh token saved in `credentials/seek_refresh_token.json`.
 **Check**:
 
 1. **Email Requirements**
-```bash
-cat info.json | jq '.[].emails'
-```
-Jobs need email addresses for auto-apply.
+Jobs need email addresses for auto-apply. Check logs to see if scraped jobs have emails.
 
 2. **Similarity Scores**
 ```bash
@@ -758,7 +748,6 @@ Check if email sending is commented out in code.
 bgt/
 ├── .env                                  # Email credentials
 ├── config/run_config.json                # Job search config
-├── info.json                             # Scraped jobs cache
 ├── application_pipeline/
 │   └── application_materials/
 │       ├── resume.pdf                    # Your resume
@@ -777,17 +766,14 @@ make run FIRST_NAME=Mehdi
 # Test email
 python3 test_email_config.py
 
-# View scraped jobs
-cat info.json | python3 -m json.tool | less
+# Test scraper
+make test-scraper
 
 # Check applications
 cat application_pipeline/application_materials/applied.json
 
 # View logs
 tail -f logs/application.log
-
-# Clear cache (start fresh)
-rm info.json
 
 # Clear application history
 echo '{"jobs": {}, "email_history": {}}' > application_pipeline/application_materials/applied.json

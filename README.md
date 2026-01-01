@@ -5,7 +5,7 @@ An intelligent automation system that scrapes job listings from Seek, generates 
 ##  Features
 
 - **Multi-Platform Scraping**: Scrapes from LinkedIn, Indeed, and Seek automatically
-- **Job Scraping**: Uses Apify, custom scraper (LinkedIn/Indeed), or cached data (automatic fallback)
+- **Job Scraping**: Uses Apify API or custom scrapers (LinkedIn/Indeed/Seek) as fallback
 - **AI-Generated Content**: Creates personalized cover letters using Gemini or MetaAI
 - **Smart Filtering**: Resume-based job matching with configurable similarity scores
 - **Email Automation**: Automated application submission via Gmail
@@ -49,7 +49,7 @@ EMAIL_APP_PASSWORD="your_gmail_app_password"  # See setup guide below
 # Optional: Gemini API (or will use MetaAI)
 GEMINI_KEY="your_gemini_api_key"
 
-# Optional: Apify API (or will use custom scraper + cached data)
+# Optional: Apify API (or will use custom scraper)
 APIFY_KEY="your_apify_api_key"
 
 # Optional: LinkedIn Selenium Scraping (for LinkedIn jobs)
@@ -89,11 +89,11 @@ Edit `config/run_config.json`:
 # Test email setup
 make test-email
 
-# Test cached data fallback
-make test-cache
-
 # Test LinkedIn Selenium scraper (optional)
 make test-linkedin
+
+# Test multi-platform scraper (optional)
+make test-scraper
 ```
 
 ### 6. Run the Application
@@ -111,12 +111,12 @@ make run FIRST_NAME=YourName
 make help              # Show all available commands
 make install           # Install dependencies
 make test-email        # Test Gmail configuration
-make test-cache        # Test cached data fallback
+make test-scraper      # Test multi-platform scraper
 make test-linkedin     # Test LinkedIn Selenium scraper
 make check-status      # Check application status
 make run FIRST_NAME=X  # Run the application
 make reset-applied     # Reset applied jobs tracker
-make clean             # Clean up cache files
+make clean             # Clean up temporary files
 ```
 
 ---
@@ -125,15 +125,9 @@ make clean             # Clean up cache files
 
 | Document | Description |
 |----------|-------------|
-| [QUICK_START.md](docs/QUICK_START.md) | Quick setup guide |
+| [DOCUMENTATION.md](docs/DOCUMENTATION.md) | Complete documentation |
 | [SELENIUM_LINKEDIN_SETUP.md](docs/SELENIUM_LINKEDIN_SETUP.md) | LinkedIn Selenium scraping setup |
-| [CUSTOM_SCRAPER.md](docs/CUSTOM_SCRAPER.md) | Custom Seek scraper (no Apify needed) |
-| [GMAIL_APP_PASSWORD_SETUP.md](docs/GMAIL_APP_PASSWORD_SETUP.md) | Gmail configuration guide |
-| [FALLBACK_DATA.md](docs/FALLBACK_DATA.md) | Cached data fallback system |
-| [GEMINI_MODEL_UPDATE.md](docs/GEMINI_MODEL_UPDATE.md) | Gemini API configuration |
-| [TROUBLESHOOTING_NO_APPLICATIONS.md](docs/TROUBLESHOOTING_NO_APPLICATIONS.md) | Common issues and fixes |
-| [CHANGES_SUMMARY.md](docs/CHANGES_SUMMARY.md) | Recent changes and fixes |
-| [SCHEDULING.md](docs/SCHEDULING.md) | Run 24/7 with cron |
+| [LINKEDIN_SCRAPING_GUIDE.md](docs/LINKEDIN_SCRAPING_GUIDE.md) | LinkedIn scraper guide |
 
 ---
 
@@ -176,7 +170,7 @@ python3 main.py \
 
 **Check:**
 1. Gmail App Password is configured correctly
-2. Jobs in `info.json` have email addresses
+2. Jobs are being scraped successfully (check logs)
 3. `applied.json` doesn't already contain the jobs
 4. Review logs for error messages
 
@@ -188,17 +182,17 @@ make reset-applied
 # Test email configuration
 make test-email
 
-# Check what jobs are available
-make test-cache
+# Test scraper
+make test-scraper
 ```
 
- See: [docs/TROUBLESHOOTING_NO_APPLICATIONS.md](docs/TROUBLESHOOTING_NO_APPLICATIONS.md)
+ See complete documentation: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)
 
 ### Email Authentication Failed?
 
 You need a Gmail App Password, not your regular password.
 
- See: [docs/GMAIL_APP_PASSWORD_SETUP.md](docs/GMAIL_APP_PASSWORD_SETUP.md)
+ See: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for Gmail setup instructions.
 
 ### Gemini API Quota Exceeded?
 
@@ -208,20 +202,16 @@ Switch to MetaAI (no limits):
 # The app will automatically use MetaAI
 ```
 
- See: [docs/GEMINI_MODEL_UPDATE.md](docs/GEMINI_MODEL_UPDATE.md)
-
 ### Apify Free Plan Expired?
 
-The system automatically uses the custom scraper:
+The system automatically uses the custom multi-platform scraper:
 ```bash
 # Remove or comment out APIFY_KEY in .env
 # The app will automatically use the custom scraper
 
-# OR test the custom scraper
-uv run python test_custom_scraper.py
+# OR test the scraper
+make test-scraper
 ```
-
- See: [docs/CUSTOM_SCRAPER.md](docs/CUSTOM_SCRAPER.md) | [docs/FALLBACK_DATA.md](docs/FALLBACK_DATA.md)
 
 ---
 
@@ -243,9 +233,12 @@ bagitoJobSeeker/
     mail_handler.py         # Email client
     seek_client.py          # Seek automation
  scrapers/                   # Job scraping
-    scraper.py              # Apify integration + fallback
+    scraper.py              # Main scraper (Apify + fallback)
+    multi_platform_scraper.py # Multi-platform custom scraper
+    seek_scraper.py         # Seek-specific scraper
+    linkedin_selenium_scraper.py # LinkedIn Selenium scraper
  test_email_config.py        # Email testing
- test_cached_fallback.py     # Cache testing
+ test_linkedin_scraper.py    # LinkedIn scraper testing
  check_application_status.py # Status checker
  main.py                     # Main entry point
  Makefile                    # Build commands
@@ -272,7 +265,7 @@ Includes:
 
 - **Rate Limits**: 
   - Gemini free tier: 20 requests/day (use MetaAI for unlimited)
-  - Apify free tier: Monthly limits (use cached data fallback)
+  - Apify free tier: Monthly limits (custom scraper used as fallback)
   - MetaAI: 30-second delay between requests (built-in)
 
 - **Email Sending**: 
@@ -289,9 +282,9 @@ Includes:
 
 ##  Running 24/7
 
-To run continuously in the background:
+To run continuously in the background, use cron or systemd.
 
- See: [docs/SCHEDULING.md](docs/SCHEDULING.md)
+ See: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for scheduling instructions.
 
 ---
 
@@ -300,8 +293,8 @@ To run continuously in the background:
 1. **Start Small**: Test with 1-2 jobs first
 2. **Check Sent Folder**: Verify emails are being sent
 3. **Monitor Logs**: Watch for errors and successes
-4. **Update Cache**: Refresh `info.json` periodically
-5. **Track Applications**: Review `applied.json` regularly
+4. **Review Applications**: Track progress in `applied.json`
+5. **Update Config**: Adjust search terms and filters as needed
 
 ---
 

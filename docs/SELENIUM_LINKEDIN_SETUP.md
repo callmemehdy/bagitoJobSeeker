@@ -149,10 +149,10 @@ uv add --upgrade webdriver-manager
 ## Best Practices
 
 1. **Start Small**: Test with 5-10 jobs first
-2. **Use Caching**: LinkedIn data saved to `info.json`
-3. **Monitor Logs**: Check for scraping errors
-4. **Rotate Platforms**: Don't scrape LinkedIn too frequently
-5. **Respect Limits**: Don't abuse LinkedIn's platform
+2. **Monitor Logs**: Check for scraping errors
+3. **Rotate Platforms**: Don't scrape LinkedIn too frequently
+4. **Respect Limits**: Don't abuse LinkedIn's platform
+5. **Use Headless Mode**: Enable in production for efficiency
 
 ## Configuration Options
 
@@ -168,9 +168,8 @@ uv add --upgrade webdriver-manager
 
 ## Files Created
 
-- `credentials/linkedin_cookies.json` - Saved session cookies
-- `info.json` - Cached job data (includes LinkedIn jobs)
-- `links.json` - Jobs without emails but with apply links
+- `credentials/linkedin_cookies.json` - Saved session cookies for faster login
+- `application_pipeline/application_materials/applied.json` - Tracks applications sent
 
 ## Next Steps
 
