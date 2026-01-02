@@ -29,10 +29,11 @@ logging.basicConfig(
 class LinkedInPostScraper:
     """Scrapes LinkedIn feed posts for job opportunities"""
     
-    def __init__(self, email: str, password: str, headless: bool = True):
+    def __init__(self, email: str, password: str, headless: bool = True, location: str = ""):
         self.email = email
         self.password = password
         self.headless = headless
+        self.location = location
         self.driver = None
         self.cookies_file = './credentials/linkedin_cookies.json'
         
@@ -263,8 +264,14 @@ class LinkedInPostScraper:
             # Skip the feed entirely - go straight to posts search
             logging.info("Navigating directly to posts search...")
             
+            # Build search URL with location if provided
+            search_query = search_term.replace(' ', '%20')
+            if self.location:
+                search_query = f"{search_query}%20{self.location.replace(' ', '%20')}"
+                logging.info(f"Including location in search: {self.location}")
+            
             # Use posts-only search filter
-            search_url = f"https://www.linkedin.com/search/results/content/?keywords={search_term.replace(' ', '%20')}&sortBy=%22date_posted%22"
+            search_url = f"https://www.linkedin.com/search/results/content/?keywords={search_query}&sortBy=%22date_posted%22"
             logging.info(f"Searching LinkedIn posts: {search_url}")
             
             try:
