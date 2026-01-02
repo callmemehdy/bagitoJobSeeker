@@ -272,6 +272,20 @@ The bot supports any country. Configure in `config/run_config.json`:
 }
 ```
 
+#### Morocco
+```json
+{
+    "suburbOrCity": "Casablanca",
+    "country": "Morocco",
+    "countryCode": "MA",
+    "locale": {
+        "language": "fr-MA",
+        "spellVariant": "french",
+        "currency": "MAD"
+    }
+}
+```
+
 ### Spelling Variants
 
 The bot adapts spelling based on country:

@@ -8,17 +8,16 @@
     ],
     "maxResults": 20,
     "SortBy": "KeywordsRelevance",
-    "suburbOrCity": "London",
+    "suburbOrCity": "Casablanca",
     "state": "",
-    "country": "United Kingdom",
-    "countryCode": "GB",
+    "country": "Morocco",
+    "countryCode": "MA",
     "dateRange": 31,
     "requireEmail": false,
     "platforms": ["linkedin"],
     "locale": {
-        "language": "en-GB",
-        "spellVariant": "british",
-        "currency": "GBP"
-    },
-    "use_selenium_for_linkedin": true
+        "language": "fr-MA",
+        "spellVariant": "french",
+        "currency": "MAD"
+    }
 }

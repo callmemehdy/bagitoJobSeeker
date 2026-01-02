@@ -12,7 +12,7 @@ An intelligent automation system that scrapes LinkedIn posts and job listings, g
 - **Email Automation**: Automated application submission via Gmail
 - **Seek Integration**: Direct application on Seek platform (when logged in)
 - **Application Tracking**: Prevents duplicate applications
-- **British English**: Automatic spelling conversion for UK jobs (organise vs organize)
+- **Multi-Language Support**: Automatic spelling conversion based on locale (British, American, French, etc.)
 - **Zero Cost Option**: Works without Apify API credits
 
 ---
@@ -91,10 +91,15 @@ Edit `config/run_config.json`:
     "AI jobs email"
   ],
   "maxResults": 20,
-  "suburbOrCity": "London",
-  "country": "United Kingdom",
-  "countryCode": "GB",
-  "platforms": ["linkedin"]
+  "suburbOrCity": "Your City",
+  "country": "Your Country",
+  "countryCode": "XX",
+  "platforms": ["linkedin"],
+  "locale": {
+    "language": "en-US",
+    "spellVariant": "american",
+    "currency": "USD"
+  }
 }
 ```
 
@@ -214,7 +219,7 @@ python3 main.py \
 
 **Tips:**
 - Use more specific search terms: "hiring email", "recruiting contact"
-- Try location-specific searches: "London hiring email"
+- Try location-specific searches: "hiring email [your city]"
 - Look for recruiter/HR posts rather than general job postings
 - Consider supplementing with job board scrapers (Indeed, Seek)
 
