@@ -386,9 +386,20 @@ class LinkedInPostScraper:
         try:
             # Try to expand "see more" to get full post text
             try:
-                see_more = container.find_element(By.CSS_SELECTOR, "button[aria-label*='see more'], button.feed-shared-inline-show-more-text__see-more-less-toggle")
-                self.driver.execute_script("arguments[0].click();", see_more)
-                time.sleep(0.5)
+                see_more_buttons = container.find_elements(By.CSS_SELECTOR, 
+                    "button[aria-label*='see more'], "
+                    "button.feed-shared-inline-show-more-text__see-more-less-toggle, "
+                    "button.feed-shared-inline-show-more-text__button, "
+                    "span.feed-shared-inline-show-more-text__button"
+                )
+                for button in see_more_buttons:
+                    try:
+                        self.driver.execute_script("arguments[0].click();", button)
+                        time.sleep(0.5)
+                        logging.debug("Expanded 'see more' button")
+                        break
+                    except:
+                        continue
             except:
                 pass
             
@@ -470,7 +481,8 @@ class LinkedInPostScraper:
                 'location': "LinkedIn Post",
                 'jobLink': post_link,
                 'applyLink': post_link,
-                'content': post_text[:500],  # First 500 chars
+                'content': post_text,  # Full post text for job description
+                'description': post_text,  # Also add as description field
                 'emails': filtered_emails,
                 'timestamp': timestamp,
                 'source': 'linkedin_posts'

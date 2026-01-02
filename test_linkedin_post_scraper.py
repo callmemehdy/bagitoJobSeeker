@@ -56,7 +56,15 @@ def main():
                 print(f"   Author: {post.get('company', 'Unknown')}")
                 print(f"   Emails: {', '.join(post.get('emails', []))}")
                 print(f"   Link: {post.get('jobLink', 'No link')[:80]}...")
-                print(f"   Content preview: {post.get('content', '')[:100]}...")
+                
+                # Show more of the post content
+                content = post.get('content', '')
+                if len(content) > 300:
+                    print(f"   Content: {content[:300]}...")
+                    print(f"   [Full content: {len(content)} characters]")
+                else:
+                    print(f"   Content: {content}")
+                
                 print(f"   Timestamp: {post.get('timestamp', 'Unknown')}")
             
             all_posts.extend(posts)
