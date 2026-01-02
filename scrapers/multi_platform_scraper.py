@@ -175,14 +175,14 @@ class MultiPlatformScraper:
         return jobs
     
     async def _scrape_linkedin(self, search_term: str) -> List[Dict]:
-        """Scrape LinkedIn jobs using Selenium"""
+        """Scrape LinkedIn posts using Selenium"""
         if not self.use_selenium_for_linkedin:
             logging.info("Selenium for LinkedIn is disabled in config")
             return []
         
         try:
             # Import here to avoid dependency if not used
-            from .linkedin_selenium_scraper import LinkedInSeleniumScraper
+            from .linkedin_post_scraper import LinkedInPostScraper
             
             email = os.getenv('LINKEDIN_EMAIL')
             password = os.getenv('LINKEDIN_PASSWORD')
@@ -191,11 +191,11 @@ class MultiPlatformScraper:
                 logging.warning("LINKEDIN_EMAIL and LINKEDIN_PASSWORD not set in .env - skipping LinkedIn")
                 return []
             
-            logging.info("Using Selenium to scrape LinkedIn...")
+            logging.info("Using Selenium to scrape LinkedIn posts...")
             
             # Run Selenium scraper synchronously (Selenium doesn't support async)
             loop = asyncio.get_event_loop()
-            jobs = await loop.run_in_executor(
+            posts = await loop.run_in_executor(
                 None,
                 self._scrape_linkedin_sync,
                 email,
@@ -203,7 +203,7 @@ class MultiPlatformScraper:
                 search_term
             )
             
-            return jobs
+            return posts
             
         except ImportError as e:
             logging.error(f"Failed to import LinkedIn scraper: {e}")
@@ -215,22 +215,19 @@ class MultiPlatformScraper:
     
     def _scrape_linkedin_sync(self, email: str, password: str, search_term: str) -> List[Dict]:
         """Synchronous LinkedIn scraping (called in executor)"""
-        from .linkedin_selenium_scraper import LinkedInSeleniumScraper
+        from .linkedin_post_scraper import LinkedInPostScraper
         
-        scraper = LinkedInSeleniumScraper(
+        scraper = LinkedInPostScraper(
             email=email,
             password=password,
-            headless=True,
-            country=self.country,
-            country_code=self.country_code
+            headless=True
         )
         
         try:
-            location = self.run_config.get('suburbOrCity', '')
             max_results = self.run_config.get('maxResults', 50)
             
-            jobs = scraper.scrape_jobs(search_term, location, max_results)
-            return jobs
+            posts = scraper.scrape_posts(search_term, max_results)
+            return posts
         finally:
             scraper.close()
     

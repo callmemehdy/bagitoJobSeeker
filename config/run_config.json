@@ -1,20 +1,24 @@
 {
     "searchTerms": [
-        "Software Engineer"
+        "hiring email",
+        "recruiting contact",
+        "internship apply email",
+        "software engineer opportunity contact",
+        "AI jobs email"
     ],
-    "maxResults": 1,
+    "maxResults": 20,
     "SortBy": "KeywordsRelevance",
-    "suburbOrCity": "Casablanca",
+    "suburbOrCity": "London",
     "state": "",
-    "country": "Morocco",
-    "countryCode": "MA",
+    "country": "United Kingdom",
+    "countryCode": "GB",
     "dateRange": 31,
     "requireEmail": false,
     "platforms": ["linkedin"],
-    "use_selenium_for_linkedin": true,
     "locale": {
-        "language": "fr-MA",
-        "spellVariant": "french",
-        "currency": "MAD"
-    }
+        "language": "en-GB",
+        "spellVariant": "british",
+        "currency": "GBP"
+    },
+    "use_selenium_for_linkedin": true
 }

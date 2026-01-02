@@ -1,18 +1,19 @@
 # BagitoJobSeeker - Automated Job Application Bot 
 
-An intelligent automation system that scrapes job listings from Seek, generates personalized cover letters using AI, and automatically sends job applications via email.
+An intelligent automation system that scrapes LinkedIn posts and job listings, generates personalized cover letters using AI, and automatically sends job applications via email.
 
 ##  Features
 
-- **Multi-Platform Scraping**: Scrapes from LinkedIn, Indeed, and Seek automatically
-- **Job Scraping**: Uses Apify API or custom scrapers (LinkedIn/Indeed/Seek) as fallback
+- **LinkedIn Post Scraping**: Scrapes LinkedIn posts searching for job opportunities with contact emails
+- **Multi-Platform Support**: LinkedIn posts, Indeed, and Seek job boards
+- **Smart Search**: Uses optimized keywords like "hiring email", "recruiting contact" to find posts with contact info
 - **AI-Generated Content**: Creates personalized cover letters using Gemini or MetaAI
 - **Smart Filtering**: Resume-based job matching with configurable similarity scores
 - **Email Automation**: Automated application submission via Gmail
 - **Seek Integration**: Direct application on Seek platform (when logged in)
 - **Application Tracking**: Prevents duplicate applications
-- **Australian English**: Automatic spelling conversion (organise vs organize)
-- **Zero Cost Option**: Multi-platform scraper works without Apify API credits
+- **British English**: Automatic spelling conversion for UK jobs (organise vs organize)
+- **Zero Cost Option**: Works without Apify API credits
 
 ---
 
@@ -46,15 +47,15 @@ nano .env
 EMAIL_ADDRESS="your@gmail.com"
 EMAIL_APP_PASSWORD="your_gmail_app_password"  # See setup guide below
 
+# LinkedIn Credentials (Required for post scraping)
+LINKEDIN_EMAIL="your_linkedin_email@example.com"
+LINKEDIN_PASSWORD="your_linkedin_password"
+
 # Optional: Gemini API (or will use MetaAI)
 GEMINI_KEY="your_gemini_api_key"
 
 # Optional: Apify API (or will use custom scraper)
 APIFY_KEY="your_apify_api_key"
-
-# Optional: LinkedIn Selenium Scraping (for LinkedIn jobs)
-LINKEDIN_EMAIL="your_linkedin_email@example.com"
-LINKEDIN_PASSWORD="your_linkedin_password"
 ```
 
 **Important:** You need a Gmail App Password (not your regular password)
@@ -83,30 +84,36 @@ Edit `config/run_config.json`:
 ```json
 {
   "searchTerms": [
-    "Software Engineer",
-    "AI Engineer",
-    "Python Developer"
+    "hiring email",
+    "recruiting contact",
+    "internship apply email",
+    "software engineer opportunity contact",
+    "AI jobs email"
   ],
-  "location": "All Australia",
-  "maxJobsPerSearch": 50
+  "maxResults": 20,
+  "suburbOrCity": "London",
+  "country": "United Kingdom",
+  "countryCode": "GB",
+  "platforms": ["linkedin"]
 }
 ```
 
-### 5. Fresh LinkedIn Login
+**Note:** The scraper searches LinkedIn posts for job opportunities. Use search terms that are likely to appear in posts where recruiters share contact emails.
 
-Generate fresh authentication cookies:
+### 5. Test LinkedIn Post Scraper
+
+Test the new post scraper:
 
 ```bash
-make login
+python test_linkedin_post_scraper.py
 ```
 
 This will:
-- Open a browser window
+- Open a browser window (set `headless=False` to watch)
 - Log you into LinkedIn
-- Save authentication cookies
-- Verify login works
-
-**Note:** Run `make login` again if LinkedIn cookies expire.
+- Search for posts with emails
+- Show results in console
+- Save results to `linkedin_posts_with_emails.json`
 
 ### 6. Test Configuration
 
@@ -114,11 +121,8 @@ This will:
 # Test email setup
 make test-email
 
-# Test LinkedIn Selenium scraper (optional)
-make test-linkedin
-
-# Test multi-platform scraper (optional)
-make test-scraper
+# Test the complete pipeline
+make run FIRST_NAME=YourName
 ```
 
 ### 7. Run the Application
@@ -136,8 +140,6 @@ make run FIRST_NAME=YourName
 make help              # Show all available commands
 make install           # Install dependencies
 make test-email        # Test Gmail configuration
-make test-scraper      # Test multi-platform scraper
-make test-linkedin     # Test LinkedIn Selenium scraper
 make check-status      # Check application status
 make run FIRST_NAME=X  # Run the application
 make reset-applied     # Reset applied jobs tracker
@@ -146,13 +148,30 @@ make clean             # Clean up temporary files
 
 ---
 
-##  Documentation
+##  How It Works
 
-| Document | Description |
-|----------|-------------|
-| [DOCUMENTATION.md](docs/DOCUMENTATION.md) | Complete documentation |
-| [SELENIUM_LINKEDIN_SETUP.md](docs/SELENIUM_LINKEDIN_SETUP.md) | LinkedIn Selenium scraping setup |
-| [LINKEDIN_SCRAPING_GUIDE.md](docs/LINKEDIN_SCRAPING_GUIDE.md) | LinkedIn scraper guide |
+### LinkedIn Post Scraping
+
+The bot now scrapes **LinkedIn posts** instead of job cards:
+
+1. **Logs into LinkedIn** using your credentials
+2. **Searches for posts** using keywords like "hiring email", "recruiting contact"
+3. **Finds posts with emails** by parsing post content
+4. **Extracts contact information** (emails, author, link, timestamp)
+5. **Filters results** to remove non-personal emails (noreply@, linkedin.com, etc.)
+6. **Returns jobs** with valid contact emails for the application pipeline
+
+**Why LinkedIn Posts?**
+- Recruiters often share job opportunities on LinkedIn posts
+- Posts frequently include contact emails for direct applications
+- More personal than formal job postings
+- Higher response rates
+
+**Search Term Tips:**
+- Use "hiring email", "recruiting contact" for better results
+- Combine job type with "apply email": "AI internship apply email"
+- Include "opportunity contact" or "jobs email" in searches
+- Avoid generic terms like just "software engineer"
 
 ---
 
@@ -184,18 +203,49 @@ python3 main.py \
 | `--min_score` | Minimum similarity score (0.0-1.0) | `0.0` (disabled) |
 | `--model` | Gemini model to use | `gemini-2.5-flash` |
 | `--mail_protocol` | Email provider | `gmail.com` |
-| `--australian_language` | Use Australian English | `1` (enabled) |
-| `--show_recent_role` | Show recent role on Seek | `1` (enabled) |
 
 ---
 
 ##  Troubleshooting
 
+### No Posts with Emails Found?
+
+**This is normal!** LinkedIn posts rarely contain public email addresses.
+
+**Tips:**
+- Use more specific search terms: "hiring email", "recruiting contact"
+- Try location-specific searches: "London hiring email"
+- Look for recruiter/HR posts rather than general job postings
+- Consider supplementing with job board scrapers (Indeed, Seek)
+
+### LinkedIn Login Issues?
+
+**If stuck on login page:**
+```bash
+# Delete old cookies and login fresh
+rm ./credentials/linkedin_cookies.json
+python test_linkedin_post_scraper.py
+```
+
+**If security challenge appears:**
+- Run with `headless=False` to complete challenge manually
+- Complete the challenge in the browser
+- Press Enter to continue
+
+### Email Authentication Failed?
+
+You need a Gmail App Password, not your regular password.
+
+**Setup steps:**
+1. Enable 2FA: https://myaccount.google.com/security
+2. Create App Password: https://myaccount.google.com/apppasswords
+3. Copy the 16-character code to `.env`
+
 ### No Applications Sent?
 
 **Check:**
-1. Gmail App Password is configured correctly
-2. Jobs are being scraped successfully (check logs)
+1. Posts were found with emails (check logs)
+2. Gmail App Password is configured correctly
 3. `applied.json` doesn't already contain the jobs
 4. Review logs for error messages
 
@@ -207,40 +257,8 @@ make reset-applied
 # Test email configuration
 make test-email
 
-# Test scraper
-make test-scraper
-```
-
- See complete documentation: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)
-
-### Email Authentication Failed?
-
-You need a Gmail App Password, not your regular password.
-
-**Setup steps:**
-1. Enable 2FA: https://myaccount.google.com/security
-2. Create App Password: https://myaccount.google.com/apppasswords
-3. Copy the 16-character code to `.env`
-
-For detailed Gmail configuration, see the DOCUMENTATION.md file.
-
-### Gemini API Quota Exceeded?
-
-Switch to MetaAI (no limits):
-```bash
-# Comment out GEMINI_KEY in .env
-# The app will automatically use MetaAI
-```
-
-### Apify Free Plan Expired?
-
-The system automatically uses the custom multi-platform scraper:
-```bash
-# Remove or comment out APIFY_KEY in .env
-# The app will automatically use the custom scraper
-
-# OR test the scraper
-make test-scraper
+# Test LinkedIn post scraper
+python test_linkedin_post_scraper.py
 ```
 
 ---
@@ -256,7 +274,7 @@ bagitoJobSeeker/
  config/                     # Configuration files
     args.py                 # CLI arguments
     run_config.json         # Job search config
- credentials/                # Seek login credentials
+ credentials/                # LinkedIn cookies
  docs/                       # Documentation
  integrations/               # External service integrations
     agent.py                # AI agents (Gemini/MetaAI)
@@ -265,29 +283,15 @@ bagitoJobSeeker/
  scrapers/                   # Job scraping
     scraper.py              # Main scraper (Apify + fallback)
     multi_platform_scraper.py # Multi-platform custom scraper
+    linkedin_post_scraper.py # LinkedIn post scraper (NEW)
     seek_scraper.py         # Seek-specific scraper
-    linkedin_selenium_scraper.py # LinkedIn Selenium scraper
  test_email_config.py        # Email testing
- test_linkedin_scraper.py    # LinkedIn scraper testing
+ test_linkedin_post_scraper.py # LinkedIn post scraper testing
  check_application_status.py # Status checker
  main.py                     # Main entry point
  Makefile                    # Build commands
  README.md                   # This file
 ```
-
----
-
-## Documentation
-
-Complete documentation available in: **[docs/DOCUMENTATION.md](docs/DOCUMENTATION.md)**
-
-Includes:
-- Quick Start Guide
-- Gmail Setup Instructions
-- Platform Features (LinkedIn, Indeed, Seek)
-- Country Configuration
-- Running 24/7 Instructions
-- Complete Troubleshooting Guide
 
 ---
 
@@ -297,34 +301,28 @@ Includes:
   - Gemini free tier: 20 requests/day (use MetaAI for unlimited)
   - Apify free tier: Monthly limits (custom scraper used as fallback)
   - MetaAI: 30-second delay between requests (built-in)
+  - LinkedIn: Be mindful of scraping frequency to avoid rate limits
 
 - **Email Sending**: 
   - Gmail has daily send limits (~500 emails/day)
   - Consider spacing out applications
   - Monitor your Gmail Sent folder
 
-- **Seek Applications**:
-  - Requires manual login (via email code)
-  - Only for jobs without questions/requirements
-  - Credentials stored in `credentials/seek_refresh_token.json`
-
----
-
-##  Running 24/7
-
-To run continuously in the background, use cron or systemd.
-
- See: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for scheduling instructions.
+- **LinkedIn Posts**:
+  - Posts with emails are rare (expect low results)
+  - Best for niche/specialized roles where recruiters share contact info
+  - Supplement with traditional job board scrapers for better coverage
 
 ---
 
 ##  Tips
 
-1. **Start Small**: Test with 1-2 jobs first
+1. **Start Small**: Test with the post scraper first to see results
 2. **Check Sent Folder**: Verify emails are being sent
 3. **Monitor Logs**: Watch for errors and successes
 4. **Review Applications**: Track progress in `applied.json`
-5. **Update Config**: Adjust search terms and filters as needed
+5. **Update Search Terms**: Adjust to find posts with emails
+6. **Combine Approaches**: Use both post scraping and job board scraping
 
 ---
 
