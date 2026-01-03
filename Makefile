@@ -82,7 +82,7 @@ run:
 	fi
 	@echo " Running job application bot..."
 	@echo "   First Name: $(FIRST_NAME)"
-	@uv run python3 main.py --first_name $(FIRST_NAME) --min_score 0.4
+	@uv run python3 main.py --first_name $(FIRST_NAME) --min_score 0.3
 
 # Clean up
 clean:
