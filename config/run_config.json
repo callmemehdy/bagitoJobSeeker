@@ -1,20 +1,28 @@
 {
     "searchTerms": [
-
-        "Cybersecurity internship email"
+        "software engineer",
+        "software engineering intern",
+        "graduate software engineer",
+        "machine learning engineer",
+        "AI engineer",
+        "full stack developer",
+        "web developer",
+        "firmware engineer",
+        "systems engineer",
+        "data scientist"
     ],
-    "maxResults": 20,
+    "maxResults": 100,
     "SortBy": "KeywordsRelevance",
-    "suburbOrCity": "Casablanca",
-    "state": "",
-    "country": "Morocco",
-    "countryCode": "MA",
+    "suburbOrCity": "Sydney",
+    "state": "NSW",
+    "country": "Australia",
+    "countryCode": "AU",
     "dateRange": 31,
     "requireEmail": false,
-    "platforms": ["linkedin"],
+    "platforms": ["seek"],
     "locale": {
-        "language": "fr-MA",
-        "spellVariant": "french",
-        "currency": "MAD"
+        "language": "en-AU",
+        "spellVariant": "british",
+        "currency": "AUD"
     }
 }
