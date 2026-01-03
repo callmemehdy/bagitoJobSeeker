@@ -1,28 +1,29 @@
 {
     "searchTerms": [
-        "software engineer",
-        "software engineering intern",
-        "graduate software engineer",
-        "machine learning engineer",
-        "AI engineer",
-        "full stack developer",
-        "web developer",
-        "firmware engineer",
-        "systems engineer",
-        "data scientist"
+        "software engineer hiring email",
+        "software engineer opportunity contact",
+        "développeur logiciel recrutement email",
+        "machine learning engineer contact",
+        "AI engineer hiring",
+        "full stack developer opportunity email",
+        "ingénieur informatique recrutement",
+        "stage développement email",
+        "junior developer hiring contact",
+        "tech jobs Morocco email"
     ],
     "maxResults": 100,
     "SortBy": "KeywordsRelevance",
-    "suburbOrCity": "Sydney",
-    "state": "NSW",
-    "country": "Australia",
-    "countryCode": "AU",
+    "suburbOrCity": "Casablanca",
+    "state": "",
+    "country": "Morocco",
+    "countryCode": "MA",
     "dateRange": 31,
     "requireEmail": false,
-    "platforms": ["seek"],
+    "platforms": ["linkedin"],
     "locale": {
-        "language": "en-AU",
-        "spellVariant": "british",
-        "currency": "AUD"
-    }
+        "language": "fr-MA",
+        "spellVariant": "french",
+        "currency": "MAD"
+    },
+    "use_selenium_for_linkedin": true
 }
