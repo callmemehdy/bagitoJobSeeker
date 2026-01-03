@@ -8,6 +8,7 @@ import json
 import time
 import logging
 import re
+import hashlib
 from typing import List, Dict, Optional
 from pathlib import Path
 from selenium import webdriver
@@ -452,9 +453,9 @@ class LinkedInPostScraper:
             except:
                 pass
             
-            # Get post link
+            # Get post link and generate ID
             post_link = ""
-            post_id = f"linkedin_post_{int(time.time() * 1000)}"
+            post_id = None
             try:
                 # Try to get the post permalink
                 permalink = container.find_element(By.CSS_SELECTOR, "a[href*='/feed/update/'], a[href*='activity']")
@@ -465,6 +466,11 @@ class LinkedInPostScraper:
                     post_id = f"linkedin_post_{id_match.group(1)}"
             except:
                 pass
+            
+            # If no post ID found, generate one from content hash to avoid duplicates
+            if not post_id:
+                content_hash = hashlib.md5(post_text[:500].encode()).hexdigest()
+                post_id = f"linkedin_post_{content_hash}"
             
             # Get timestamp
             timestamp = ""
