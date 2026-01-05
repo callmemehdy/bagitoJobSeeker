@@ -1,4 +1,4 @@
-.PHONY: help install test-email test-scraper test-linkedin check-status run clean login
+.PHONY: help install test-email test-scraper test-linkedin check-status run clean login apply-offers
 
 # Default target
 help:
@@ -18,6 +18,7 @@ help:
 	@echo "Running:"
 	@echo "  make run              Run the job application bot"
 	@echo "  make run FIRST_NAME=YourName  Run with custom first name"
+	@echo "  make apply-offers     Apply to all jobs from offers file (auto-resume on error)"
 	@echo ""
 	@echo "Monitoring:"
 	@echo "  make check-status     Check application status"
@@ -83,6 +84,51 @@ run:
 	@echo " Running job application bot..."
 	@echo "   First Name: $(FIRST_NAME)"
 	@uv run python3 main.py --first_name $(FIRST_NAME) --min_score 0.3
+
+# Apply to all jobs from offers file with auto-resume on error
+OFFERS_FILE ?= offers_2025-11-10-10-57-35.json
+MIN_SCORE ?= 0.0
+OFFSET_FILE ?= offset.txt
+apply-offers:
+	@if [ -z "$(FIRST_NAME)" ]; then \
+		echo " Error: FIRST_NAME is required"; \
+		echo "Usage: make apply-offers FIRST_NAME=YourName"; \
+		echo ""; \
+		echo "Optional parameters:"; \
+		echo "  OFFERS_FILE=path/to/offers.json  (default: offers_2025-11-10-10-57-35.json)"; \
+		echo "  MIN_SCORE=0.3                     (default: 0.0)"; \
+		echo ""; \
+		echo "Examples:"; \
+		echo "  make apply-offers FIRST_NAME=John"; \
+		echo "  make apply-offers FIRST_NAME=John MIN_SCORE=0.6"; \
+		exit 1; \
+	fi
+	@START_INDEX=0; \
+	if [ -f "$(OFFSET_FILE)" ]; then \
+		START_INDEX=$$(cat $(OFFSET_FILE)); \
+		echo " Resuming from offset $$START_INDEX"; \
+	fi; \
+	echo " Applying to all jobs from offers file..."; \
+	echo "   First Name: $(FIRST_NAME)"; \
+	echo "   Offers File: $(OFFERS_FILE)"; \
+	echo "   Min Score: $(MIN_SCORE)"; \
+	echo "   Start Index: $$START_INDEX"; \
+	echo ""; \
+	if uv run python3 apply_from_offers.py \
+		--first_name $(FIRST_NAME) \
+		--offers_file $(OFFERS_FILE) \
+		--min_score $(MIN_SCORE) \
+		--start_index $$START_INDEX \
+		--offset_file $(OFFSET_FILE); then \
+		rm -f $(OFFSET_FILE); \
+		echo ""; \
+		echo " All jobs processed successfully! Offset file removed."; \
+	else \
+		echo ""; \
+		echo " Error occurred. Offset saved to $(OFFSET_FILE)"; \
+		echo " Run 'make apply-offers FIRST_NAME=$(FIRST_NAME)' again to resume."; \
+		exit 1; \
+	fi
 
 # Clean up
 clean:

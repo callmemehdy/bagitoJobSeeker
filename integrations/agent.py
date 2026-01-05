@@ -224,10 +224,19 @@ class GeminiAgent:
             The email must mention that the resume and cover letter are attached.
             Do not include a subject line.
 
-            **Required Output Format (Strictly follow this):**
-            Dear Hiring Manager,
-            [contents of email]
-            Best Regards
+            **CRITICAL RULES:**
+            1. Start with "Dear Recruiter," only
+            2. Keep it under 4 sentences total
+            3. DO NOT use ANY square brackets or placeholders
+            4. The email should be complete and ready to send as-is
+            5. Briefly introduce yourself in 1 sentence, mention attachments, express interest
+
+            **Example structure (do NOT copy, create your own):**
+            Dear Recruiter,
+            
+            I'm {self.name}, a professional with experience in relevant field. I've attached my resume and cover letter for your consideration. I'd be happy to discuss how my experience aligns with your opportunities.
+            
+            Best Regards,
             {self.name}
         """
 
@@ -235,8 +244,8 @@ class GeminiAgent:
             "You are an AI assistant specialized in drafting concise, professional, "
             "and polite cold emails for recruiters. Your *only* output must be the "
             "email body text. Do not include a subject line, any introductory or "
-            "concluding commentary, or extra text of any kind. Strict adherence to "
-            "the provided email format is required."
+            "concluding commentary, or extra text of any kind. NEVER use square brackets "
+            "or placeholders. The email must be complete and ready to send."
         )
         
         full_prompt = f"{system_instruction}\n\n{email_prompt}"
@@ -245,6 +254,11 @@ class GeminiAgent:
             contents=full_prompt
         )
         email_text = response.text.strip()
+        
+        # Remove any remaining square brackets
+        import re
+        email_text = re.sub(r'\[.*?\]', '', email_text)
+        
         return email_text
 
 
@@ -298,13 +312,32 @@ class MetaAgent:
 
     def write_email_contents(self):
         email_content = self.client.prompt(message=f"""
-            Now write the contents of the email, I have scraped these email of these recruiters so keep the cold email brief and to the point, I will also be attaching my resume and cover letter
-            format the email in as follows & exclude a subject:
-            Dear first name
-            contents of email
-            Best Regards
+            Write a brief cold email to a recruiter. I have attached my resume and cover letter.
+            Keep it professional and concise (3-4 sentences max).
+            
+            IMPORTANT RULES: 
+            - Start with "Dear Recruiter," only
+            - Do NOT use any square brackets or placeholders at all
+            - The email must be complete and ready to send
+            - Briefly introduce yourself, mention attachments, express interest
+            
+            Format:
+            Dear Recruiter,
+            
+            I'm {self.name}, a professional with relevant experience. I've attached my resume and cover letter for your consideration. I'd be happy to discuss opportunities.
+            
+            Best Regards,
             {self.name}
         """)
 
-        cleaned_email_content = re.sub(rf".*?(Dear .*?Best Regards\n{self.name}\n).*", r"\1", email_content['message'], flags=re.DOTALL)
-        return cleaned_email_content
+        # Extract and clean the email
+        import re
+        message = email_content['message']
+        
+        # Remove any square brackets and their content
+        message = re.sub(r'\[.*?\]', '', message)
+        
+        # Try to extract the email body
+        cleaned_email_content = re.sub(rf".*?(Dear .*?Best Regards[,]?\s*{self.name}[\s]*).*", r"\1", message, flags=re.DOTALL)
+        
+        return cleaned_email_content.strip()
