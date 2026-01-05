@@ -36,11 +36,13 @@ class GeminiAgent:
             job_description = job_content
         
         company_profile = job_data.get('companyProfile', {})
-        company_name = company_profile.get('name', 'N/A')
+        company_name = company_profile.get('name', '')
         
         position = job_data.get('title', 'Unknown position')
-        if company_name == 'N/A':
-            company_name = 'Hiring Manager'
+        
+        # If no company name, use generic greeting
+        if not company_name or company_name.lower() in ['n/a', 'unknown']:
+            company_name = 'Hiring Team'
 
         language_instruction = ""
         if spell_variant:
@@ -276,7 +278,14 @@ class MetaAgent:
             job_description = job_content
         
         position = job_data.get('title', 'Unknown position')
-        company_name = job_data.get('companyProfile', {}).get('name', 'Unknown company')
+        
+        # Try to get company name from companyProfile
+        company_profile = job_data.get('companyProfile', {})
+        company_name = company_profile.get('name', '')
+        
+        # If no company name, use generic greeting
+        if not company_name or company_name.lower() in ['unknown', 'n/a']:
+            company_name = 'Hiring Team'
 
         language_instruction = ""
         if spell_variant:

@@ -59,12 +59,53 @@ class OffersApplicator:
         """Convert offer format to the format expected by the agent"""
         job_description = f"{offer.get('little_description', '')} {offer.get('big_description', '')}"
         
+        # Extract company name from email domain or job title
+        company_name = ''
+        email = offer.get('email', '')
+        if email:
+            # Extract from email domain (e.g., name@company.com -> company)
+            domain = email.split('@')[-1].split('.')[0]
+            company_name = domain.capitalize()
+        
+        # Try to extract from title if it contains company indicators
+        title = offer.get('title', '')
+        if 'by ' in title.lower():
+            parts = title.lower().split('by ')
+            if len(parts) > 1:
+                # Get company name after "by" and clean it
+                company_part = parts[-1].strip()
+                # Remove parentheses and get first word
+                company_part = company_part.replace(')', '').replace('(', '')
+                company_name = company_part.split()[0].strip().capitalize()
+        elif ' - ' in title:
+            # Check if company name is at the start (e.g., "Scholé AI - Position")
+            parts = title.split(' - ')
+            if len(parts) > 1 and len(parts[0].split()) <= 3:
+                # Likely a company name (short, at start)
+                company_name = parts[0].strip().replace(',', '')
+        
+        # Fallback: try to find capitalized words in description
+        if not company_name or len(company_name) < 3:
+            for desc in [offer.get('big_description', ''), offer.get('little_description', '')]:
+                if desc:
+                    words = desc.split()[:15]  # Check first 15 words
+                    for word in words:
+                        # Look for words that are all caps or start with capital (excluding common words)
+                        clean_word = word.strip('.,!?()[]{}";:')
+                        if (clean_word.isupper() and len(clean_word) > 2) or \
+                           (clean_word and clean_word[0].isupper() and len(clean_word) > 4 and 
+                            clean_word not in ['Rejoins', 'Participe', 'Développeur', 'Engineer']):
+                            company_name = clean_word
+                            break
+                    if company_name:
+                        break
+        
         return {
             'id': offer.get('id'),
             'title': offer.get('title'),
             'content': job_description,
             'jobLink': offer.get('slug', ''),
-            'company': '',
+            'companyProfile': {'name': company_name} if company_name else {},
             'location': offer.get('full_address', ''),
             'salary': offer.get('salary', ''),
             'contractType': offer.get('contract_type', ''),
