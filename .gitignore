@@ -49,3 +49,7 @@ Thumbs.db
 
 # UV lock
 uv.lock
+
+# sht
+
+offset.txt
