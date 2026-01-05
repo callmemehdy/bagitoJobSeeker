@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 from pathlib import Path
 import argparse
 import logging
+import time
 import sys
 import os
 
@@ -171,17 +172,34 @@ class OffersApplicator:
                 
                 formatted_job = self.format_job_for_agent(offer)
                 
-                if not self.args.use_gemini:
-                    self.agent = AIAgent(self.args.first_name).agent
+                # Retry logic for AI generation
+                max_retries = 3
+                retry_delay = 10
                 
-                cover_letter = self.agent.prepare_cover_letter(
-                    formatted_job, 
-                    self.args.resume_txt, 
-                    self.spell_variant
-                )
-                generate_cover_letter_pdf(cover_letter, self.args.cover_letter_path)
-                
-                msg = self.agent.write_email_contents()
+                for attempt in range(max_retries):
+                    try:
+                        if not self.args.use_gemini:
+                            self.agent = AIAgent(self.args.first_name).agent
+                        
+                        cover_letter = self.agent.prepare_cover_letter(
+                            formatted_job, 
+                            self.args.resume_txt, 
+                            self.spell_variant
+                        )
+                        generate_cover_letter_pdf(cover_letter, self.args.cover_letter_path)
+                        
+                        msg = self.agent.write_email_contents()
+                        break
+                        
+                    except Exception as ai_error:
+                        if attempt < max_retries - 1:
+                            logging.warning(f"AI generation failed (attempt {attempt + 1}/{max_retries}): {ai_error}")
+                            logging.info(f"Waiting {retry_delay} seconds before retry...")
+                            time.sleep(retry_delay)
+                            retry_delay *= 2  # Exponential backoff
+                        else:
+                            logging.error(f"AI generation failed after {max_retries} attempts")
+                            raise
                 
                 success = self.mail_client.send_application(
                     contact_email,
@@ -216,6 +234,11 @@ class OffersApplicator:
                     }
                     
                     write_json_file(self.args.applied_path, self.applied)
+                    
+                    # Add delay between applications to avoid rate limits
+                    if not self.args.use_gemini:
+                        logging.info('Waiting 30 seconds before next application...')
+                        time.sleep(30)
                 
             except Exception as e:
                 logging.error(f"Error processing offer {offer_id}: {e}")
