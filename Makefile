@@ -1,4 +1,4 @@
-.PHONY: help install test-email test-scraper test-linkedin check-status run clean login apply-offers
+.PHONY: help install test-email test-scraper test-linkedin check-status run clean login apply-offers test-one-offer
 
 # Default target
 help:
@@ -12,6 +12,7 @@ help:
 	@echo ""
 	@echo "Testing:"
 	@echo "  make test-email       Test Gmail configuration"
+	@echo "  make test-one-offer   Test with just 1 job offer (ISMAIL, index 211)"
 	@echo "  make test-scraper     Test custom Seek scraper"
 	@echo "  make test-linkedin    Test LinkedIn Selenium scraper"
 	@echo ""
@@ -89,6 +90,23 @@ run:
 OFFERS_FILE ?= offers_2025-11-10-10-57-35.json
 MIN_SCORE ?= 0.0
 OFFSET_FILE ?= offset.txt
+DEFAULT_FIRST_NAME ?= ISMAIL
+BATCH_SIZE ?= 20
+START_INDEX ?= 200
+
+# Test with just 1 job offer
+test-one-offer:
+	@echo " Testing with 1 job offer..."
+	@echo "   First Name: $(DEFAULT_FIRST_NAME)"
+	@echo "   Start Index: $(START_INDEX)"
+	@echo "   Min Score: $(MIN_SCORE)"
+	@. venv/bin/activate && python3 apply_from_offers.py \
+		--offers_file $(OFFERS_FILE) \
+		--first_name $(DEFAULT_FIRST_NAME) \
+		--min_score $(MIN_SCORE) \
+		--batch_size  \
+		--start_index $(START_INDEX)
+
 apply-offers:
 	@if [ -z "$(FIRST_NAME)" ]; then \
 		echo " Error: FIRST_NAME is required"; \
