@@ -45,6 +45,9 @@ class LinkedInPostScraper:
         if self.headless:
             chrome_options.add_argument('--headless=new')
         
+        # DON'T use incognito - we need cookies to work
+        # chrome_options.add_argument('--incognito')  # REMOVED - prevents cookies
+        
         # Essential stability options
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
@@ -83,7 +86,7 @@ class LinkedInPostScraper:
     def _login(self) -> bool:
         """Login to LinkedIn"""
         try:
-            # Try cookies first
+            # Try cookies first - avoid re-login every time
             if self._load_cookies():
                 logging.info("Checking if cookies are still valid...")
                 try:
@@ -95,8 +98,9 @@ class LinkedInPostScraper:
                     current_url = self.driver.current_url
                     logging.info(f"After cookie load, current URL: {current_url}")
                     
-                    if "feed" in current_url:
-                        logging.info("Successfully logged in with saved cookies")
+                    # Check if we're logged in (not redirected to login)
+                    if "feed" in current_url and "login" not in current_url and "uas/login" not in current_url:
+                        logging.info("✓ Successfully logged in with saved cookies")
                         self.driver.set_page_load_timeout(60)
                         return True
                     else:
@@ -106,8 +110,9 @@ class LinkedInPostScraper:
                     try:
                         self.driver.execute_script("window.stop();")
                         time.sleep(1)
-                        if "feed" in self.driver.current_url:
-                            logging.info("Successfully logged in (page stopped but we're on feed)")
+                        current = self.driver.current_url
+                        if "feed" in current and "login" not in current:
+                            logging.info("✓ Successfully logged in (page stopped but we're on feed)")
                             self.driver.set_page_load_timeout(60)
                             return True
                     except:
@@ -133,21 +138,66 @@ class LinkedInPostScraper:
                 time.sleep(2)
             
             try:
-                # Wait for and fill in email
-                email_field = WebDriverWait(self.driver, 10).until(
-                    EC.presence_of_element_located((By.ID, "username"))
+                # Check if it's the "Welcome Back" page with pre-filled email
+                try:
+                    time.sleep(2)  # Wait for page to fully load
+                    # Look for "Sign in using another account" link - indicates Welcome Back page
+                    another_account = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Sign in using another account')]")
+                    if another_account:
+                        logging.info("Detected 'Welcome Back' page with saved email")
+                        # Click to use another account to get to standard login
+                        another_account[0].click()
+                        time.sleep(3)  # Wait for page transition
+                        logging.info("Clicked 'Sign in using another account'")
+                except Exception as e:
+                    logging.debug(f"No 'Welcome Back' page detected (or error): {e}")
+                
+                # Wait for and fill in email - with better wait condition
+                logging.info("Waiting for email field...")
+                email_field = WebDriverWait(self.driver, 15).until(
+                    EC.element_to_be_clickable((By.ID, "username"))
                 )
+                
+                # Debug: Check if credentials are loaded
+                logging.info(f"Email to use: {self.email[:5]}...@..." if self.email else "❌ EMAIL IS EMPTY!")
+                logging.info(f"Password loaded: {'Yes' if self.password else '❌ NO PASSWORD!'}")
+                
+                if not self.email or not self.password:
+                    logging.error("❌ Credentials are empty! Check your .env file")
+                    logging.error(f"   LINKEDIN_EMAIL: {self.email}")
+                    logging.error(f"   LINKEDIN_PASSWORD: {'***' if self.password else 'NOT SET'}")
+                    return False
+                
+                # Click to focus, then clear
+                email_field.click()
+                time.sleep(0.5)
                 email_field.clear()
                 time.sleep(0.5)
-                email_field.send_keys(self.email)
-                logging.info("Email entered")
                 
-                # Fill in password
-                password_field = self.driver.find_element(By.ID, "password")
+                # Type email character by character (more human-like)
+                logging.info("Typing email...")
+                for char in self.email:
+                    email_field.send_keys(char)
+                    time.sleep(0.08)  # Slightly slower typing
+                logging.info("✓ Email entered")
+                
+                time.sleep(1)
+                
+                # Fill in password - wait for field to be ready
+                logging.info("Waiting for password field...")
+                password_field = WebDriverWait(self.driver, 10).until(
+                    EC.element_to_be_clickable((By.ID, "password"))
+                )
+                password_field.click()
+                time.sleep(0.5)
                 password_field.clear()
                 time.sleep(0.5)
-                password_field.send_keys(self.password)
-                logging.info("Password entered")
+                
+                logging.info("Typing password...")
+                for char in self.password:
+                    password_field.send_keys(char)
+                    time.sleep(0.08)
+                logging.info("✓ Password entered")
                 
                 # Click login button
                 login_button = self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
@@ -272,6 +322,7 @@ class LinkedInPostScraper:
                 logging.info(f"Including location in search: {self.location}")
             
             # Use posts-only search filter
+            # Try different URL formats as LinkedIn changes structure
             search_url = f"https://www.linkedin.com/search/results/content/?keywords={search_query}&sortBy=%22date_posted%22"
             logging.info(f"Searching LinkedIn posts: {search_url}")
             
@@ -304,6 +355,18 @@ class LinkedInPostScraper:
             current_url = self.driver.current_url
             logging.info(f"Current URL: {current_url}")
             
+            # Check if redirected to login - cookies failed
+            if "uas/login" in current_url or "/login" in current_url:
+                logging.error("❌ LinkedIn redirected to login - cookies are not working!")
+                logging.error("This means LinkedIn detected the bot despite using cookies.")
+                logging.error("")
+                logging.error("SOLUTIONS:")
+                logging.error("1. Run 'make login' to regenerate cookies with fresh session")
+                logging.error("2. LinkedIn may be blocking automated access - try again later")
+                logging.error("3. Consider using regular job search instead of post search")
+                logging.error("   (Regular job search is more reliable and less detectable)")
+                return []
+            
             if "checkpoint" in current_url or "challenge" in current_url:
                 logging.error("LinkedIn security challenge detected!")
                 logging.error("Please complete the challenge manually")
@@ -327,18 +390,90 @@ class LinkedInPostScraper:
             last_height = self.driver.execute_script("return document.body.scrollHeight")
             
             while scroll_attempts < max_scrolls and len(posts) < max_results and stale_count < 3:
-                # Scroll down
+                # Human-like progressive scrolling
+                logging.info(f"Scroll attempt {scroll_attempts + 1}/{max_scrolls}")
+                
+                # Scroll in steps (more natural)
+                current_position = self.driver.execute_script("return window.pageYOffset")
+                scroll_height = self.driver.execute_script("return document.body.scrollHeight")
+                
+                # Scroll 70-90% of the way down (not all at once)
+                import random
+                scroll_distance = int(scroll_height * random.uniform(0.7, 0.9))
+                target_position = min(current_position + scroll_distance, scroll_height)
+                
+                # Smooth scroll to position
+                self.driver.execute_script(f"window.scrollTo({{top: {target_position}, behavior: 'smooth'}});")
+                time.sleep(random.uniform(1.5, 2.5))  # Random delay
+                
+                # Then scroll to bottom
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
                 time.sleep(3)
                 
-                # Find all post containers - use specific selectors for search results
-                post_containers = self.driver.find_elements(By.CSS_SELECTOR, 
+                # Find all post containers
+                # LinkedIn uses dynamic/obfuscated classes, so we need a flexible approach
+                # Strategy: Find all divs/li under main, then filter by content
+                
+                # Try multiple selector strategies
+                post_containers = []
+                
+                # Strategy 1: Traditional selectors (may still work)
+                containers_1 = self.driver.find_elements(By.CSS_SELECTOR, 
                     "li.reusable-search__result-container, div.feed-shared-update-v2")
+                post_containers.extend(containers_1)
+                
+                # Strategy 2: Look for divs with multiple obfuscated classes (LinkedIn's pattern)
+                # Posts typically have multiple underscore-prefixed classes
+                if len(post_containers) == 0:
+                    try:
+                        # Get all potential post containers from main content area
+                        main_element = self.driver.find_element(By.TAG_NAME, "main")
+                        # Look for divs that are likely posts (have certain attributes/structure)
+                        potential_posts = main_element.find_elements(By.XPATH, 
+                            ".//div[contains(@class, '_') and string-length(@class) > 100]")
+                        
+                        # Filter to unique parent containers
+                        seen = set()
+                        for elem in potential_posts[:50]:  # Limit to first 50
+                            try:
+                                # Get a unique identifier
+                                elem_id = elem.get_attribute('class')
+                                if elem_id not in seen:
+                                    seen.add(elem_id)
+                                    post_containers.append(elem)
+                            except:
+                                pass
+                    except Exception as e:
+                        logging.debug(f"Strategy 2 failed: {e}")
+                
+                # Strategy 3: Look for list items in main
+                if len(post_containers) == 0:
+                    try:
+                        main_element = self.driver.find_element(By.TAG_NAME, "main")
+                        list_items = main_element.find_elements(By.TAG_NAME, "li")
+                        post_containers.extend(list_items[:20])  # Take first 20 li elements
+                    except Exception as e:
+                        logging.debug(f"Strategy 3 failed: {e}")
                 
                 logging.info(f"Found {len(post_containers)} post containers on page (Posts collected so far: {len(posts)})")
                 
                 if len(post_containers) == 0:
                     logging.warning("No post containers found, page might still be loading...")
+                    
+                    # Debug: Try to find what elements ARE on the page
+                    all_lis = self.driver.find_elements(By.TAG_NAME, "li")
+                    all_divs_with_class = self.driver.find_elements(By.CSS_SELECTOR, "div[class*='result'], div[class*='update']")
+                    logging.debug(f"Debug: Found {len(all_lis)} <li> tags and {len(all_divs_with_class)} divs with 'result' or 'update' in class")
+                    
+                    # Save page source for debugging
+                    if stale_count == 0:
+                        try:
+                            with open("linkedin_debug_page.html", "w", encoding="utf-8") as f:
+                                f.write(self.driver.page_source)
+                            logging.info("Saved page source to linkedin_debug_page.html for inspection")
+                        except:
+                            pass
+                    
                     stale_count += 1
                     time.sleep(2)
                     continue
@@ -354,6 +489,14 @@ class LinkedInPostScraper:
                             if post['id'] not in [p['id'] for p in posts]:
                                 posts.append(post)
                                 logging.info(f"✓ Found post with {len(post.get('emails', []))} email(s): {post.get('emails', [])}")
+                        else:
+                            # Debug: Save first few containers that didn't yield posts
+                            if scroll_attempts == 0 and len(posts) == 0:
+                                try:
+                                    text_sample = container.text[:200] if container.text else "NO TEXT"
+                                    logging.debug(f"Container skipped. Text sample: {text_sample}")
+                                except:
+                                    pass
                     except (StaleElementReferenceException, Exception) as e:
                         logging.debug(f"Error parsing post: {e}")
                         continue
@@ -362,11 +505,13 @@ class LinkedInPostScraper:
                 new_height = self.driver.execute_script("return document.body.scrollHeight")
                 if new_height == last_height:
                     scroll_attempts += 1
-                    logging.debug(f"Page height unchanged ({scroll_attempts}/{max_scrolls})")
+                    logging.debug(f"Page height unchanged ({scroll_attempts}/{max_scrolls}), waiting for more content...")
+                    time.sleep(2)  # Wait a bit more for lazy loading
                 else:
                     scroll_attempts = 0
                     last_height = new_height
                     stale_count = 0
+                    logging.info(f"✓ Page grew to {new_height}px, found {len(posts)} posts so far")
             
             logging.info(f"Scraped {len(posts)} posts with emails from LinkedIn for '{search_term}'")
             
@@ -404,14 +549,19 @@ class LinkedInPostScraper:
             except:
                 pass
             
-            # Get post text
+            # Get post text - try multiple strategies
             post_text = ""
+            
+            # Strategy 1: Known selectors
             text_selectors = [
                 ".feed-shared-update-v2__description",
                 ".feed-shared-text",
                 ".update-components-text",
                 ".break-words",
-                ".feed-shared-inline-show-more-text"
+                ".feed-shared-inline-show-more-text",
+                "[data-testid='expandable-text-box']",
+                "div[dir='ltr']",  # Often used for text content
+                ".artdeco-card__body"
             ]
             
             for selector in text_selectors:
@@ -419,19 +569,41 @@ class LinkedInPostScraper:
                     text_elem = container.find_element(By.CSS_SELECTOR, selector)
                     post_text = text_elem.text
                     if post_text and len(post_text) > 50:
+                        logging.debug(f"Found text using selector: {selector}")
                         break
                 except:
                     continue
             
+            # Strategy 2: If no text found, get all text from container
+            if not post_text or len(post_text) < 50:
+                try:
+                    post_text = container.text
+                    logging.debug(f"Using container.text, got {len(post_text)} chars")
+                except:
+                    pass
+            
             logging.debug(f"Post text length: {len(post_text)} chars")
             
-            if not post_text or len(post_text) < 50:
-                logging.debug("Post text too short, skipping")
-                return None
+            # Don't skip if no text - still log it for debugging
+            if not post_text or len(post_text) < 20:
+                logging.debug(f"Post text too short ({len(post_text)} chars), checking HTML...")
+                try:
+                    html = container.get_attribute('innerHTML')
+                    logging.debug(f"Container HTML length: {len(html)} chars")
+                    # Try to extract text from HTML
+                    post_text = container.text or ""
+                except:
+                    pass
+                
+                if not post_text or len(post_text) < 20:
+                    logging.debug("Still no text found, skipping this container")
+                    return None
             
             # Extract emails from post text
             emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', post_text)
             emails = list(set(emails))  # Remove duplicates
+            
+            logging.debug(f"Raw emails found: {emails}")
             
             # Filter out common non-personal emails
             filtered_emails = [
@@ -439,10 +611,12 @@ class LinkedInPostScraper:
                 if not any(domain in email.lower() for domain in ['noreply', 'linkedin.com', 'example.com'])
             ]
             
-            logging.debug(f"Found {len(filtered_emails)} email(s) in post")
+            logging.debug(f"Filtered emails: {filtered_emails}")
             
+            # Log post preview even if no emails
+            preview = post_text[:150].replace('\n', ' ')
             if not filtered_emails:
-                logging.debug("No valid emails found, skipping")
+                logging.info(f"ℹ️  Post found but no emails: '{preview}...'")
                 return None
             
             # Get author info

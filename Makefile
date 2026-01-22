@@ -84,7 +84,7 @@ run:
 	fi
 	@echo " Running job application bot..."
 	@echo "   First Name: $(FIRST_NAME)"
-	@uv run python3 main.py --first_name $(FIRST_NAME) --min_score 0.3
+	@uv run python3 main.py --first_name $(FIRST_NAME) --min_score 0.0
 
 # Apply to all jobs from offers file with auto-resume on error
 OFFERS_FILE ?= offers_2025-11-10-10-57-35.json

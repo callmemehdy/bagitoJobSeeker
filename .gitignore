@@ -8,48 +8,40 @@ __pycache__/
 dist/
 build/
 
-# Virtual environments
-venv/
+# Virtual Environment
 .venv/
+venv/
 ENV/
 env/
+
+# Environment variables
+.env
+
+# Credentials
+credentials/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
-# Environment variables
-.env
-
-# Application materials (sensitive)
-application_pipeline/application_materials/
-
-# Credentials
-credentials/*
-!credentials/.gitkeep
-
-# Logs
+# Debug files
+linkedin_debug_page.html
+linkedin_search_page.html
+linkedin_search_screenshot.png
+debug_selectors.py
 *.log
-application.log
 
-# Backups
-*.backup
-*.backup_*
-*.old
-
-# Cached data (large files)
-info.json.backup_*
+# Generated files
+offers_*.json
+linkedin_posts_*.json
+application_pipeline/application_materials/
 
 # OS
 .DS_Store
 Thumbs.db
 
-# UV lock
-uv.lock
-
-# sht
-
-offset.txt
+# Temporary markdown files
+SUMMARY.md
+LINKEDIN_FIX.md
