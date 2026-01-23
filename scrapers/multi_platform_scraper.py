@@ -217,12 +217,8 @@ class MultiPlatformScraper:
         """Synchronous LinkedIn scraping (called in executor)"""
         from .linkedin_post_scraper import LinkedInPostScraper
         
-        # Get location from config
-        location = self.run_config.get('suburbOrCity', '')
-        if location:
-            country = self.run_config.get('country', '')
-            if country:
-                location = f"{location}, {country}"
+        # Use only country from config (not city)
+        location = self.run_config.get('country', '')
         
         scraper = LinkedInPostScraper(
             email=email,

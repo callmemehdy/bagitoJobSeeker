@@ -36,29 +36,34 @@ def main():
     try:
         with open('./config/run_config.json', 'r') as f:
             config = json.load(f)
-        country = config.get('country', 'United Kingdom')
-        country_code = config.get('countryCode', 'GB')
-        location = config.get('suburbOrCity', 'London')
-    except:
-        country = 'United Kingdom'
-        country_code = 'GB'
-        location = 'London'
+        country = config.get('country', 'France')
+        country_code = config.get('countryCode', 'FR')
+        search_terms = config.get('searchTerms', ['Stage Ingénieur Informatique'])
+        print(f"✓ Loaded config from run_config.json")
+        print(f"✓ Search terms: {len(search_terms)} term(s) configured")
+    except Exception as e:
+        print(f"⚠️  Could not load config: {e}")
+        print("Using default values...")
+        country = 'France'
+        country_code = 'FR'
+        search_terms = ['Stage Ingénieur Informatique']
     
     print(f"\n✓ Found LinkedIn credentials for: {email}")
     print(f"✓ Country: {country} ({country_code})")
-    print(f"✓ Location: {location}")
     print("\n⏳ Starting Chrome browser (this may take a moment)...")
     
     scraper = LinkedInPostScraper(
         email=email,
         password=password,
         headless=False,  # Set to True to hide browser
-        location=f"{location}, {country}"
+        location=country  # Use country only
     )
     
     try:
-        search_term = "Software Engineer"
-        print(f"\n🔍 Scraping LinkedIn posts for: '{search_term}' in {location}")
+        # Use first search term from config (or test with all if you want)
+        search_term = search_terms[0] if search_terms else "Stage Ingénieur Informatique"
+        print(f"\n🔍 Scraping LinkedIn posts for: '{search_term}'")
+        print(f"🌍 Country: {country}")
         print("⏳ This will take 30-60 seconds...\n")
         
         posts = scraper.scrape_posts(

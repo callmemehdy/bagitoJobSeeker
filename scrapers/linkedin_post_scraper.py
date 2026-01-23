@@ -319,10 +319,9 @@ class LinkedInPostScraper:
             search_query = search_term.replace(' ', '%20')
             if self.location:
                 search_query = f"{search_query}%20{self.location.replace(' ', '%20')}"
-                logging.info(f"Including location in search: {self.location}")
+                logging.info(f"Searching in country: {self.location}")
             
             # Use posts-only search filter
-            # Try different URL formats as LinkedIn changes structure
             search_url = f"https://www.linkedin.com/search/results/content/?keywords={search_query}&sortBy=%22date_posted%22"
             logging.info(f"Searching LinkedIn posts: {search_url}")
             
@@ -383,32 +382,46 @@ class LinkedInPostScraper:
             
             logging.info("Starting to scrape posts...")
             
+            # Track processed posts to avoid duplicates
+            processed_post_ids = set()
+            
             # Scroll to load more posts
             scroll_attempts = 0
-            max_scrolls = 10
+            max_scrolls = 15  # Increased from 10
             stale_count = 0
             last_height = self.driver.execute_script("return document.body.scrollHeight")
+            last_post_count = 0
             
-            while scroll_attempts < max_scrolls and len(posts) < max_results and stale_count < 3:
+            while scroll_attempts < max_scrolls and stale_count < 5:  # Allow more stale attempts
                 # Human-like progressive scrolling
-                logging.info(f"Scroll attempt {scroll_attempts + 1}/{max_scrolls}")
+                logging.info(f"🔽 Scroll attempt {scroll_attempts + 1}/{max_scrolls}")
                 
-                # Scroll in steps (more natural)
-                current_position = self.driver.execute_script("return window.pageYOffset")
-                scroll_height = self.driver.execute_script("return document.body.scrollHeight")
+                # Try to find the scrollable container (LinkedIn uses different structures)
+                try:
+                    # Try to get the main scrollable element
+                    main_container = self.driver.find_element(By.TAG_NAME, "main")
+                    
+                    # Scroll the main container
+                    self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", main_container)
+                    logging.info(f"   📜 Scrolled main container")
+                    time.sleep(2)
+                    
+                    # Also scroll the window
+                    self.driver.execute_script("window.scrollBy(0, 1000);")
+                    time.sleep(1)
+                    
+                    # Get scroll info
+                    scroll_top = self.driver.execute_script("return arguments[0].scrollTop", main_container)
+                    scroll_height = self.driver.execute_script("return arguments[0].scrollHeight", main_container)
+                    logging.info(f"   Current: {scroll_top}px / {scroll_height}px")
+                    
+                except Exception as e:
+                    logging.debug(f"Could not scroll main container: {e}")
+                    # Fallback to window scroll
+                    self.driver.execute_script("window.scrollBy(0, 1000);")
+                    time.sleep(2)
                 
-                # Scroll 70-90% of the way down (not all at once)
-                import random
-                scroll_distance = int(scroll_height * random.uniform(0.7, 0.9))
-                target_position = min(current_position + scroll_distance, scroll_height)
-                
-                # Smooth scroll to position
-                self.driver.execute_script(f"window.scrollTo({{top: {target_position}, behavior: 'smooth'}});")
-                time.sleep(random.uniform(1.5, 2.5))  # Random delay
-                
-                # Then scroll to bottom
-                self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(3)
+                scroll_attempts += 1
                 
                 # Find all post containers
                 # LinkedIn uses dynamic/obfuscated classes, so we need a flexible approach
@@ -456,6 +469,7 @@ class LinkedInPostScraper:
                         logging.debug(f"Strategy 3 failed: {e}")
                 
                 logging.info(f"Found {len(post_containers)} post containers on page (Posts collected so far: {len(posts)})")
+                logging.info(f"   Processed {len(processed_post_ids)} unique containers, found {len(posts)} posts with emails")
                 
                 if len(post_containers) == 0:
                     logging.warning("No post containers found, page might still be loading...")
@@ -483,9 +497,22 @@ class LinkedInPostScraper:
                         break
                     
                     try:
+                        # Generate a quick ID to check if we've seen this container
+                        try:
+                            container_text = container.text[:100]
+                            container_id = hashlib.md5(container_text.encode()).hexdigest()
+                            
+                            # Skip if already processed
+                            if container_id in processed_post_ids:
+                                continue
+                            
+                            processed_post_ids.add(container_id)
+                        except:
+                            pass
+                        
                         post = self._parse_post(container, search_term)
                         if post:
-                            # Check for duplicates
+                            # Check for duplicates by post ID
                             if post['id'] not in [p['id'] for p in posts]:
                                 posts.append(post)
                                 logging.info(f"✓ Found post with {len(post.get('emails', []))} email(s): {post.get('emails', [])}")
@@ -501,17 +528,17 @@ class LinkedInPostScraper:
                         logging.debug(f"Error parsing post: {e}")
                         continue
                 
-                # Check if we've reached the bottom
-                new_height = self.driver.execute_script("return document.body.scrollHeight")
-                if new_height == last_height:
-                    scroll_attempts += 1
-                    logging.debug(f"Page height unchanged ({scroll_attempts}/{max_scrolls}), waiting for more content...")
-                    time.sleep(2)  # Wait a bit more for lazy loading
+                # Check if we found new posts this scroll
+                if len(posts) == last_post_count:
+                    stale_count += 1
+                    logging.debug(f"No new posts found ({stale_count}/5)")
                 else:
-                    scroll_attempts = 0
-                    last_height = new_height
                     stale_count = 0
-                    logging.info(f"✓ Page grew to {new_height}px, found {len(posts)} posts so far")
+                    last_post_count = len(posts)
+                    logging.info(f"✅ Found new posts! Total now: {len(posts)}")
+                
+                # Don't double-increment scroll_attempts
+                # (already incremented at line 425)
             
             logging.info(f"Scraped {len(posts)} posts with emails from LinkedIn for '{search_term}'")
             
@@ -532,27 +559,44 @@ class LinkedInPostScraper:
         try:
             # Try to expand "see more" to get full post text
             try:
+                # Try multiple see more button selectors
                 see_more_buttons = container.find_elements(By.CSS_SELECTOR, 
                     "button[aria-label*='see more'], "
+                    "button[aria-label*='Show more'], "
                     "button.feed-shared-inline-show-more-text__see-more-less-toggle, "
                     "button.feed-shared-inline-show-more-text__button, "
-                    "span.feed-shared-inline-show-more-text__button"
+                    "span.feed-shared-inline-show-more-text__button, "
+                    "button.feed-shared-text-view-more, "
+                    "button[class*='see-more'], "
+                    "button[class*='show-more']"
                 )
-                for button in see_more_buttons:
-                    try:
-                        self.driver.execute_script("arguments[0].click();", button)
-                        time.sleep(0.5)
-                        logging.debug("Expanded 'see more' button")
-                        break
-                    except:
-                        continue
-            except:
-                pass
+                
+                if see_more_buttons:
+                    logging.debug(f"Found {len(see_more_buttons)} 'see more' button(s)")
+                    for button in see_more_buttons:
+                        try:
+                            # Check if button is visible and clickable
+                            if button.is_displayed():
+                                # Scroll button into view first
+                                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", button)
+                                time.sleep(0.3)
+                                # Click using JavaScript (more reliable)
+                                self.driver.execute_script("arguments[0].click();", button)
+                                time.sleep(0.8)  # Wait for expansion
+                                logging.debug("✓ Expanded 'see more' button")
+                        except Exception as e:
+                            logging.debug(f"Failed to click see more: {e}")
+                            continue
+            except Exception as e:
+                logging.debug(f"Error finding see more buttons: {e}")
             
             # Get post text - try multiple strategies
             post_text = ""
             
-            # Strategy 1: Known selectors
+            # Wait a bit after expansion to let content load
+            time.sleep(0.5)
+            
+            # Strategy 1: Known selectors - try each one
             text_selectors = [
                 ".feed-shared-update-v2__description",
                 ".feed-shared-text",
@@ -561,24 +605,29 @@ class LinkedInPostScraper:
                 ".feed-shared-inline-show-more-text",
                 "[data-testid='expandable-text-box']",
                 "div[dir='ltr']",  # Often used for text content
-                ".artdeco-card__body"
+                ".artdeco-card__body",
+                ".feed-shared-text-view",
+                "span[dir='ltr']"
             ]
             
             for selector in text_selectors:
                 try:
-                    text_elem = container.find_element(By.CSS_SELECTOR, selector)
-                    post_text = text_elem.text
-                    if post_text and len(post_text) > 50:
-                        logging.debug(f"Found text using selector: {selector}")
-                        break
+                    text_elems = container.find_elements(By.CSS_SELECTOR, selector)
+                    for text_elem in text_elems:
+                        text = text_elem.text
+                        if text and len(text) > len(post_text):
+                            post_text = text
+                            logging.debug(f"Found longer text using selector: {selector} ({len(text)} chars)")
                 except:
                     continue
             
-            # Strategy 2: If no text found, get all text from container
+            # Strategy 2: Get all visible text from container
             if not post_text or len(post_text) < 50:
                 try:
-                    post_text = container.text
-                    logging.debug(f"Using container.text, got {len(post_text)} chars")
+                    full_text = container.text
+                    if full_text and len(full_text) > len(post_text):
+                        post_text = full_text
+                        logging.debug(f"Using container.text, got {len(full_text)} chars")
                 except:
                     pass
             
