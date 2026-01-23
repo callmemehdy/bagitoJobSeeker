@@ -1,5 +1,48 @@
 # Example configurations for different countries
 
+> **Note:** LinkedIn post scraper uses only the `country` field for location filtering (not `suburbOrCity`). This provides broader nationwide results, which is especially useful for internships and remote opportunities.
+
+## France - Internships & PFE (Current Config)
+```json
+{
+    "searchTerms": [
+        "Stage Ingénieur Informatique",
+        "Internship Software Engineer",
+        "PFE Développement Logiciel",
+        "Stage Développeur",
+        "PFE Informatique",
+        "Stage Data Science",
+        "Internship Python Developer",
+        "Stage Machine Learning",
+        "PFE Intelligence Artificielle",
+        "Stage DevOps",
+        "Internship Full Stack",
+        "Stage Cybersécurité",
+        "PFE Réseaux",
+        "Stage Cloud Engineer",
+        "Internship Backend Developer",
+        "PFE Développement Web",
+        "Stage Frontend",
+        "Internship Data Engineer"
+    ],
+    "maxResults": 20,
+    "SortBy": "KeywordsRelevance",
+    "suburbOrCity": "Paris",
+    "state": "",
+    "country": "France",
+    "countryCode": "FR",
+    "dateRange": 31,
+    "requireEmail": false,
+    "platforms": ["linkedin"],
+    "locale": {
+        "language": "fr-FR",
+        "spellVariant": "french",
+        "currency": "EUR"
+    },
+    "use_selenium_for_linkedin": true
+}
+```
+
 ## Australia (Default)
 ```json
 {
@@ -380,28 +423,73 @@
 
 ## Configuration Fields Explained
 
+## Field Descriptions
+
 ### Required Fields:
 - **searchTerms**: Array of job titles to search for
 - **maxResults**: Maximum number of jobs per search term
-- **suburbOrCity**: City or location to search in
-- **country**: Full country name
+- **suburbOrCity**: City name (for display/reference - LinkedIn uses `country` only)
+- **country**: Full country name (used by LinkedIn scraper for location filtering)
 - **countryCode**: ISO 2-letter country code
 - **platforms**: Array of platforms to use (`["linkedin"]`, `["indeed"]`, or both)
 
 ### Locale Settings:
-- **language**: ISO language-region code (e.g., `en-US`, `en-GB`)
+- **language**: ISO language-region code (e.g., `en-US`, `en-GB`, `fr-FR`)
 - **spellVariant**: Spelling variant for cover letters
   - `"american"` - optimize, color, favor
   - `"british"` - optimise, colour, favour
   - `"australian"` - optimise, colour, favour (same as British)
   - `"canadian"` - mix of British and American
-  - `"german"`, `"french"`, etc. - for non-English
+  - `"french"` - optimiser, couleur
+  - `"german"`, `"spanish"`, etc. - for other languages
 
 ### Optional Fields:
 - **state**: State/province (use empty string `""` if not applicable)
-- **dateRange**: Jobs posted within last N days
+- **dateRange**: Jobs posted within last N days (default: 31)
 - **requireEmail**: Filter jobs that have email addresses
 - **SortBy**: Sort order (`"KeywordsRelevance"` or `"ListedDate"`)
+- **use_selenium_for_linkedin**: Enable LinkedIn post scraping (default: false)
+
+### Important Notes:
+- **LinkedIn post scraper** uses only the `country` field for broad nationwide results
+- The `suburbOrCity` field is used by other scrapers (Indeed, Seek) and for reference
+- For internships and PFE, use country-level search for maximum coverage
+
+## Popular Search Terms by Category
+
+### Internships (France)
+```json
+"searchTerms": [
+    "Stage Ingénieur Informatique",
+    "Stage Développeur",
+    "Stage Data Science",
+    "PFE Informatique",
+    "PFE Intelligence Artificielle",
+    "Internship Software Engineer"
+]
+```
+
+### Full-time (General)
+```json
+"searchTerms": [
+    "Software Engineer",
+    "Backend Developer",
+    "Full Stack Developer",
+    "DevOps Engineer",
+    "Data Engineer"
+]
+```
+
+### Senior Roles
+```json
+"searchTerms": [
+    "Senior Software Engineer",
+    "Tech Lead",
+    "Engineering Manager",
+    "Software Architect",
+    "Principal Engineer"
+]
+```
 
 ## Spell Variants Supported
 
