@@ -382,6 +382,14 @@ class LinkedInPostScraper:
             
             logging.info("Starting to scrape posts...")
             
+            # Save initial page HTML for debugging
+            try:
+                with open("linkedin_debug_page.html", "w", encoding="utf-8") as f:
+                    f.write(self.driver.page_source)
+                logging.info("📄 Saved initial page HTML to linkedin_debug_page.html")
+            except Exception as e:
+                logging.debug(f"Could not save debug HTML: {e}")
+            
             # Track processed posts to avoid duplicates
             processed_post_ids = set()
             
@@ -393,41 +401,10 @@ class LinkedInPostScraper:
             last_post_count = 0
             
             while scroll_attempts < max_scrolls and stale_count < 5:  # Allow more stale attempts
-                # Human-like progressive scrolling
+                # Human-like progressive scrolling - scroll to EACH post individually
                 logging.info(f"🔽 Scroll attempt {scroll_attempts + 1}/{max_scrolls}")
                 
-                # Try to find the scrollable container (LinkedIn uses different structures)
-                try:
-                    # Try to get the main scrollable element
-                    main_container = self.driver.find_element(By.TAG_NAME, "main")
-                    
-                    # Scroll the main container
-                    self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", main_container)
-                    logging.info(f"   📜 Scrolled main container")
-                    time.sleep(2)
-                    
-                    # Also scroll the window
-                    self.driver.execute_script("window.scrollBy(0, 1000);")
-                    time.sleep(1)
-                    
-                    # Get scroll info
-                    scroll_top = self.driver.execute_script("return arguments[0].scrollTop", main_container)
-                    scroll_height = self.driver.execute_script("return arguments[0].scrollHeight", main_container)
-                    logging.info(f"   Current: {scroll_top}px / {scroll_height}px")
-                    
-                except Exception as e:
-                    logging.debug(f"Could not scroll main container: {e}")
-                    # Fallback to window scroll
-                    self.driver.execute_script("window.scrollBy(0, 1000);")
-                    time.sleep(2)
-                
-                scroll_attempts += 1
-                
-                # Find all post containers
-                # LinkedIn uses dynamic/obfuscated classes, so we need a flexible approach
-                # Strategy: Find all divs/li under main, then filter by content
-                
-                # Try multiple selector strategies
+                # Find all post containers FIRST
                 post_containers = []
                 
                 # Strategy 1: Traditional selectors (may still work)
@@ -436,20 +413,15 @@ class LinkedInPostScraper:
                 post_containers.extend(containers_1)
                 
                 # Strategy 2: Look for divs with multiple obfuscated classes (LinkedIn's pattern)
-                # Posts typically have multiple underscore-prefixed classes
                 if len(post_containers) == 0:
                     try:
-                        # Get all potential post containers from main content area
                         main_element = self.driver.find_element(By.TAG_NAME, "main")
-                        # Look for divs that are likely posts (have certain attributes/structure)
                         potential_posts = main_element.find_elements(By.XPATH, 
                             ".//div[contains(@class, '_') and string-length(@class) > 100]")
                         
-                        # Filter to unique parent containers
                         seen = set()
-                        for elem in potential_posts[:50]:  # Limit to first 50
+                        for elem in potential_posts[:50]:
                             try:
-                                # Get a unique identifier
                                 elem_id = elem.get_attribute('class')
                                 if elem_id not in seen:
                                     seen.add(elem_id)
@@ -464,7 +436,7 @@ class LinkedInPostScraper:
                     try:
                         main_element = self.driver.find_element(By.TAG_NAME, "main")
                         list_items = main_element.find_elements(By.TAG_NAME, "li")
-                        post_containers.extend(list_items[:20])  # Take first 20 li elements
+                        post_containers.extend(list_items[:20])
                     except Exception as e:
                         logging.debug(f"Strategy 3 failed: {e}")
                 
@@ -490,13 +462,30 @@ class LinkedInPostScraper:
                     
                     stale_count += 1
                     time.sleep(2)
+                    
+                    # Try scrolling anyway
+                    try:
+                        main_container = self.driver.find_element(By.TAG_NAME, "main")
+                        self.driver.execute_script("arguments[0].scrollBy(0, 1000);", main_container)
+                        time.sleep(2)
+                    except:
+                        self.driver.execute_script("window.scrollBy(0, 1000);")
+                        time.sleep(2)
+                    
+                    scroll_attempts += 1
                     continue
                 
-                for container in post_containers:
+                # Process each post container individually
+                for idx, container in enumerate(post_containers):
                     if len(posts) >= max_results:
                         break
                     
                     try:
+                        # Scroll THIS specific post into view to load its content
+                        logging.info(f"   📌 Processing post {idx + 1}/{len(post_containers)}")
+                        self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", container)
+                        time.sleep(1)  # Wait for content to load
+                        
                         # Generate a quick ID to check if we've seen this container
                         try:
                             container_text = container.text[:100]
@@ -537,8 +526,22 @@ class LinkedInPostScraper:
                     last_post_count = len(posts)
                     logging.info(f"✅ Found new posts! Total now: {len(posts)}")
                 
+                # Scroll down to load more posts for next iteration
+                try:
+                    main_container = self.driver.find_element(By.TAG_NAME, "main")
+                    # Scroll to bottom of main container
+                    self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", main_container)
+                    logging.info(f"   ⬇️  Scrolled to bottom to load more posts")
+                    time.sleep(2)  # Wait for new content to load
+                except:
+                    # Fallback to window scroll
+                    self.driver.execute_script("window.scrollBy(0, 1000);")
+                    time.sleep(2)
+                
+                scroll_attempts += 1
+                
                 # Don't double-increment scroll_attempts
-                # (already incremented at line 425)
+                # (already incremented above)
             
             logging.info(f"Scraped {len(posts)} posts with emails from LinkedIn for '{search_term}'")
             
@@ -648,8 +651,28 @@ class LinkedInPostScraper:
                     logging.debug("Still no text found, skipping this container")
                     return None
             
+            # IMPORTANT: Also extract emails from mailto links in HTML!
+            # LinkedIn often wraps emails in <a href="mailto:..."> tags
+            emails_from_links = []
+            try:
+                # Get all mailto links
+                mailto_links = container.find_elements(By.CSS_SELECTOR, "a[href^='mailto:']")
+                for link in mailto_links:
+                    href = link.get_attribute('href')
+                    if href:
+                        # Extract email from mailto:email@domain.com
+                        email = href.replace('mailto:', '').strip()
+                        if email and '@' in email:
+                            emails_from_links.append(email)
+                            logging.debug(f"Found email in mailto link: {email}")
+            except Exception as e:
+                logging.debug(f"Error extracting mailto links: {e}")
+            
             # Extract emails from post text
             emails = re.findall(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', post_text)
+            
+            # Combine emails from text and mailto links
+            emails.extend(emails_from_links)
             emails = list(set(emails))  # Remove duplicates
             
             logging.debug(f"Raw emails found: {emails}")
@@ -666,6 +689,19 @@ class LinkedInPostScraper:
             preview = post_text[:150].replace('\n', ' ')
             if not filtered_emails:
                 logging.info(f"ℹ️  Post found but no emails: '{preview}...'")
+                
+                # Save full post text to debug file for analysis
+                try:
+                    with open("linkedin_posts_no_emails.txt", "a", encoding="utf-8") as f:
+                        f.write("="*80 + "\n")
+                        f.write(f"POST (No emails found)\n")
+                        f.write(f"Length: {len(post_text)} chars\n")
+                        f.write("="*80 + "\n")
+                        f.write(post_text)
+                        f.write("\n\n")
+                except:
+                    pass
+                
                 return None
             
             # Get author info

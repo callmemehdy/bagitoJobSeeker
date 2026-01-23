@@ -21,7 +21,6 @@
     ],
     "maxResults":20,
     "SortBy": "KeywordsRelevance",
-    "suburbOrCity": "Paris",
     "state": "",
     "country": "France",
     "countryCode": "FR",

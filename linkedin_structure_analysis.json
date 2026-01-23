@@ -1,0 +1,18 @@
+{
+  "total_emails": 20,
+  "unique_emails": [
+    "me@maxkrl.com",
+    "utrobertpro@gmail.com",
+    "Williamdong044@gmail.com"
+  ],
+  "patterns_found": {
+    "feed-shared-update": 0,
+    "reusable-search__result": 0,
+    "update-components": 0,
+    "feed-shared-text": 0,
+    "break-words": 0,
+    "data-testid=\"expandable": 10
+  },
+  "html_size": 249381,
+  "post_count_estimate": 10
+}
