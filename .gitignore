@@ -45,3 +45,24 @@ Thumbs.db
 # Temporary markdown files
 SUMMARY.md
 LINKEDIN_FIX.md
+
+# Debug and analysis files
+linkedin_debug_page.html
+linkedin_search_page.html
+linkedin_posts_no_emails.txt
+linkedin_structure_analysis.json
+linkedin_test_output.log
+analysis_output.log
+analyze_linkedin_structure.py
+
+# Test scripts
+test_*.py
+fresh_login.py
+debug_*.py
+
+# Documentation (keep only README.md)
+LINKEDIN_*.md
+UPDATE_*.md
+config/country_examples.md
+docs/*.md
+!README.md
