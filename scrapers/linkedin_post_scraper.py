@@ -677,13 +677,46 @@ class LinkedInPostScraper:
             
             logging.debug(f"Raw emails found: {emails}")
             
-            # Filter out common non-personal emails
-            filtered_emails = [
-                email for email in emails 
-                if not any(domain in email.lower() for domain in ['noreply', 'linkedin.com', 'example.com'])
+            # Filter out personal/generic email domains (Gmail, Yahoo, Hotmail, etc.)
+            # Only keep professional/company emails
+            personal_domains = [
+                # Common personal email providers
+                'gmail.com', 'googlemail.com',
+                'yahoo.com', 'yahoo.fr', 'yahoo.co.uk',
+                'hotmail.com', 'hotmail.fr', 'hotmail.co.uk',
+                'outlook.com', 'outlook.fr',
+                'live.com', 'live.fr',
+                'icloud.com', 'me.com', 'mac.com',
+                'aol.com', 'protonmail.com', 'proton.me',
+                'mail.com', 'gmx.com', 'gmx.fr',
+                'yandex.com', 'yandex.ru',
+                'zoho.com', 'zohomail.com',
+                # Invalid/test domains
+                'linkedin.com', 'example.com',
+                'test.com', 'temp.com', 'tempmail.com'
             ]
             
-            logging.debug(f"Filtered emails: {filtered_emails}")
+            filtered_emails = []
+            for email in emails:
+                email_lower = email.lower()
+                # Extract domain from email
+                if '@' in email_lower:
+                    domain = email_lower.split('@')[1]
+                    local_part = email_lower.split('@')[0]
+                    
+                    # Skip if local part contains noreply/no-reply
+                    if 'noreply' in local_part or 'no-reply' in local_part:
+                        logging.debug(f"✗ Skipped noreply email: {email}")
+                        continue
+                    
+                    # Check if it's a personal domain
+                    if not any(personal_domain in domain for personal_domain in personal_domains):
+                        filtered_emails.append(email)
+                        logging.debug(f"✓ Professional email: {email}")
+                    else:
+                        logging.debug(f"✗ Skipped personal email: {email} (domain: {domain})")
+            
+            logging.debug(f"Filtered emails (professional only): {filtered_emails}")
             
             # Log post preview even if no emails
             preview = post_text[:150].replace('\n', ' ')
