@@ -19,7 +19,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import TimeoutException, NoSuchElementException, StaleElementReferenceException
-from webdriver_manager.chrome import ChromeDriverManager
 
 logging.basicConfig(
     level=logging.INFO,
@@ -73,7 +72,8 @@ class LinkedInPostScraper:
         }
         chrome_options.add_experimental_option("prefs", prefs)
         
-        service = Service(ChromeDriverManager().install())
+        chrome_options.binary_location = os.getenv("CHROME_BINARY", "/usr/sbin/chromium-browser")
+        service = Service()
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
         
         # Set page load timeout
@@ -100,7 +100,7 @@ class LinkedInPostScraper:
                     
                     # Check if we're logged in (not redirected to login)
                     if "feed" in current_url and "login" not in current_url and "uas/login" not in current_url:
-                        logging.info("✓ Successfully logged in with saved cookies")
+                        logging.info("Successfully logged in with saved cookies")
                         self.driver.set_page_load_timeout(60)
                         return True
                     else:
@@ -112,7 +112,7 @@ class LinkedInPostScraper:
                         time.sleep(1)
                         current = self.driver.current_url
                         if "feed" in current and "login" not in current:
-                            logging.info("✓ Successfully logged in (page stopped but we're on feed)")
+                            logging.info("Successfully logged in (page stopped but we're on feed)")
                             self.driver.set_page_load_timeout(60)
                             return True
                     except:
@@ -159,11 +159,11 @@ class LinkedInPostScraper:
                 )
                 
                 # Debug: Check if credentials are loaded
-                logging.info(f"Email to use: {self.email[:5]}...@..." if self.email else "❌ EMAIL IS EMPTY!")
-                logging.info(f"Password loaded: {'Yes' if self.password else '❌ NO PASSWORD!'}")
+                logging.info(f"Email to use: {self.email[:5]}...@..." if self.email else "Email is empty")
+                logging.info(f"Password loaded: {'Yes' if self.password else 'NO PASSWORD!'}")
                 
                 if not self.email or not self.password:
-                    logging.error("❌ Credentials are empty! Check your .env file")
+                    logging.error("Credentials are empty! Check your .env file")
                     logging.error(f"   LINKEDIN_EMAIL: {self.email}")
                     logging.error(f"   LINKEDIN_PASSWORD: {'***' if self.password else 'NOT SET'}")
                     return False
@@ -179,7 +179,7 @@ class LinkedInPostScraper:
                 for char in self.email:
                     email_field.send_keys(char)
                     time.sleep(0.08)  # Slightly slower typing
-                logging.info("✓ Email entered")
+                logging.info("Email entered")
                 
                 time.sleep(1)
                 
@@ -197,7 +197,7 @@ class LinkedInPostScraper:
                 for char in self.password:
                     password_field.send_keys(char)
                     time.sleep(0.08)
-                logging.info("✓ Password entered")
+                logging.info("Password entered")
                 
                 # Click login button
                 login_button = self.driver.find_element(By.CSS_SELECTOR, "button[type='submit']")
@@ -356,7 +356,7 @@ class LinkedInPostScraper:
             
             # Check if redirected to login - cookies failed
             if "uas/login" in current_url or "/login" in current_url:
-                logging.error("❌ LinkedIn redirected to login - cookies are not working!")
+                logging.error("LinkedIn redirected to login - cookies are not working!")
                 logging.error("This means LinkedIn detected the bot despite using cookies.")
                 logging.error("")
                 logging.error("SOLUTIONS:")
@@ -386,7 +386,7 @@ class LinkedInPostScraper:
             try:
                 with open("linkedin_debug_page.html", "w", encoding="utf-8") as f:
                     f.write(self.driver.page_source)
-                logging.info("📄 Saved initial page HTML to linkedin_debug_page.html")
+                logging.info("Saved initial page HTML to linkedin_debug_page.html")
             except Exception as e:
                 logging.debug(f"Could not save debug HTML: {e}")
             
@@ -402,7 +402,7 @@ class LinkedInPostScraper:
             
             while scroll_attempts < max_scrolls and stale_count < 5:  # Allow more stale attempts
                 # Human-like progressive scrolling - scroll to EACH post individually
-                logging.info(f"🔽 Scroll attempt {scroll_attempts + 1}/{max_scrolls}")
+                logging.info(f"Scroll attempt {scroll_attempts + 1}/{max_scrolls}")
                 
                 # Find all post containers FIRST
                 post_containers = []
@@ -482,7 +482,7 @@ class LinkedInPostScraper:
                     
                     try:
                         # Scroll THIS specific post into view to load its content
-                        logging.info(f"   📌 Processing post {idx + 1}/{len(post_containers)}")
+                        logging.info(f"   Processing post {idx + 1}/{len(post_containers)}")
                         self.driver.execute_script("arguments[0].scrollIntoView({behavior: 'smooth', block: 'center'});", container)
                         time.sleep(1)  # Wait for content to load
                         
@@ -504,7 +504,7 @@ class LinkedInPostScraper:
                             # Check for duplicates by post ID
                             if post['id'] not in [p['id'] for p in posts]:
                                 posts.append(post)
-                                logging.info(f"✓ Found post with {len(post.get('emails', []))} email(s): {post.get('emails', [])}")
+                                logging.info(f"Found post with {len(post.get('emails', []))} email(s): {post.get('emails', [])}")
                         else:
                             # Debug: Save first few containers that didn't yield posts
                             if scroll_attempts == 0 and len(posts) == 0:
@@ -524,14 +524,14 @@ class LinkedInPostScraper:
                 else:
                     stale_count = 0
                     last_post_count = len(posts)
-                    logging.info(f"✅ Found new posts! Total now: {len(posts)}")
+                    logging.info(f"Found new posts! Total now: {len(posts)}")
                 
                 # Scroll down to load more posts for next iteration
                 try:
                     main_container = self.driver.find_element(By.TAG_NAME, "main")
                     # Scroll to bottom of main container
                     self.driver.execute_script("arguments[0].scrollTop = arguments[0].scrollHeight", main_container)
-                    logging.info(f"   ⬇️  Scrolled to bottom to load more posts")
+                    logging.info("   Scrolled to bottom to load more posts")
                     time.sleep(2)  # Wait for new content to load
                 except:
                     # Fallback to window scroll
@@ -586,7 +586,7 @@ class LinkedInPostScraper:
                                 # Click using JavaScript (more reliable)
                                 self.driver.execute_script("arguments[0].click();", button)
                                 time.sleep(0.8)  # Wait for expansion
-                                logging.debug("✓ Expanded 'see more' button")
+                                logging.debug("Expanded 'see more' button")
                         except Exception as e:
                             logging.debug(f"Failed to click see more: {e}")
                             continue
@@ -706,22 +706,22 @@ class LinkedInPostScraper:
                     
                     # Skip if local part contains noreply/no-reply
                     if 'noreply' in local_part or 'no-reply' in local_part:
-                        logging.debug(f"✗ Skipped noreply email: {email}")
+                        logging.debug(f"Skipped noreply email: {email}")
                         continue
                     
                     # Check if it's a personal domain
                     if not any(personal_domain in domain for personal_domain in personal_domains):
                         filtered_emails.append(email)
-                        logging.debug(f"✓ Professional email: {email}")
+                        logging.debug(f"Professional email: {email}")
                     else:
-                        logging.debug(f"✗ Skipped personal email: {email} (domain: {domain})")
+                        logging.debug(f"Skipped personal email: {email} (domain: {domain})")
             
             logging.debug(f"Filtered emails (professional only): {filtered_emails}")
             
             # Log post preview even if no emails
             preview = post_text[:150].replace('\n', ' ')
             if not filtered_emails:
-                logging.info(f"ℹ️  Post found but no emails: '{preview}...'")
+                logging.info(f"Post found but no emails: '{preview}...'")
                 
                 # Save full post text to debug file for analysis
                 try:

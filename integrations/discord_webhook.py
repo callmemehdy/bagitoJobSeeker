@@ -115,17 +115,17 @@ class DiscordWebhook:
                         "color": 5814783,
                         "fields": [
                             {
-                                "name": "🏢 Company",
+                                "name": "Company",
                                 "value": company,
                                 "inline": True
                             },
                             {
-                                "name": "📍 Location",
+                                "name": "Location",
                                 "value": location,
                                 "inline": True
                             },
                             {
-                                "name": "🔗 Apply",
+                                "name": "Apply",
                                 "value": f"[Click here]({link})",
                                 "inline": False
                             }
@@ -134,7 +134,7 @@ class DiscordWebhook:
                     embeds.append(embed)
                 
                 payload = {
-                    "content": f"**🔍 {search_term}** - Found {len(jobs)} job(s) without email contacts:",
+                    "content": f"**Search: {search_term}** - Found {len(jobs)} job(s) without email contacts:",
                     "embeds": embeds
                 }
                 

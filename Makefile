@@ -75,7 +75,7 @@ check-status:
 	@uv run python3 check_application_status.py
 
 # Run the application
-FIRST_NAME ?= $(shell bash -c 'read -p "Enter your first name: " name; echo $$name')
+FIRST_NAME = Mehdi
 run:
 	@if [ -z "$(FIRST_NAME)" ]; then \
 		echo " Error: FIRST_NAME is required"; \
